@@ -21,3 +21,16 @@
 #         print(track['name'] + ' - ' + track['artists'][0]['name'])
 # else:
 #     print("Can't get token for", username)
+import os
+import pprint
+
+# getting the EMVs
+# result = os.getenv('client_id','EMV not found')
+client_id = os.environ.get('client_id','client_id not found')
+print(client_id)
+# env_var = os.environ
+  
+# # Print the list of user's
+# # environment variables
+# print("User's Environment variable:")
+# pprint.pprint(dict(env_var['client_id']), width = 1)
