@@ -1,1 +1,0 @@
-https://accounts.spotify.com/authorize?client_id=92cce333b3da417a95d8ca738477b241&response_type=code&redirect_uri=https%3A%2F%2FmySpotifyAPI.com%2Fhome&scope=playlist-modify-public%20playlist-modify-private

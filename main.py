@@ -1,36 +1,17 @@
-# from __future__ import print_function
-# import sys
-# import spotipy
-# import spotipy.util as util
+from authentication import authenticate
+from utils import *   # get everything
+from prettyprinter import pprint
 
-# scope = 'user-library-read'
 
-# if len(sys.argv) > 1:
-#     username = sys.argv[1]
-# else:
-#     print("Usage: %s username" % (sys.argv[0],))
-#     sys.exit()
+def main():
+    sp = authenticate()
 
-# token = util.prompt_for_user_token(username, scope)
+    get_categories(sp, print_results=False)
+    get_favorite_songs(sp, print_results=False)
+    pprint(get_recently_played(sp))
+    get_current_user_saved_episodes(sp)
 
-# if token:
-#     sp = spotipy.Spotify(auth=token)
-#     results = sp.current_user_saved_tracks()
-#     for item in results['items']:
-#         track = item['track']
-#         print(track['name'] + ' - ' + track['artists'][0]['name'])
-# else:
-#     print("Can't get token for", username)
-import os
-import pprint
 
-# getting the EMVs
-# result = os.getenv('client_id','EMV not found')
-client_id = os.environ.get('client_id','client_id not found')
-print(client_id)
-# env_var = os.environ
-  
-# # Print the list of user's
-# # environment variables
-# print("User's Environment variable:")
-# pprint.pprint(dict(env_var['client_id']), width = 1)
+if __name__ == '__main__':
+    # This code won't run if this file is imported.
+    main()
