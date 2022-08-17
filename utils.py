@@ -1,4 +1,8 @@
 from prettyprinter import pprint
+from authentication import authenticate
+from collections import Counter
+
+sp = authenticate()
 
 
 def convert_date(date):
@@ -31,10 +35,16 @@ def get_favorite_songs(sp, print_results=True):
         print("There are currently " +
               str(fav_songs['total']) + " Songs added to your Favorite Songs list:")
 
+    # pprint(fav_songs.keys())
     # pprint(type(fav_songs['items'])) # is a list
     favorite_songs = []
     song_cnt = 1
     for song in fav_songs['items']:
+
+        # song_uri = song['track']['uri']
+        # print(song_uri)
+        # sp.add_to_queue(uri="spotify:track:6SYu5mwFpG3AmoudfJrt33")
+        break
         title = song['track']['name']
 
         artist = None
@@ -110,3 +120,10 @@ def get_recently_played(sp, amount_of_tracks=20):
 
 def get_current_user_saved_episodes(sp):
     saved_episodes = sp.current_user_saved_episodes()
+
+
+def get_all_top_tracks(sp):
+    data = {'songs': [],
+            'uri': [],
+            'artists': []
+            }
