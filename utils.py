@@ -1,129 +1,167 @@
 from prettyprinter import pprint
 from authentication import authenticate
-from collections import Counter
-
-sp = authenticate()
+import requests
 
 
 def convert_date(date):
+    '''
+        This function converts a Data given in '2022-08-17T14:27:25.085Z' to '17.08.2022'
+        params:
+            - date: string in the Form of '2022-08-17T14:27:25.085Z'
+    '''
     day = str(date)[8:10]
     month = str(date)[5:7]
     year = str(date)[0:4]
     return f"{day}.{month}.{year}"
 
 
-def get_categories(sp, print_results=True):
-    categories = sp.categories()
-    all_categories = []
-
-    # List
-    for categorie in categories['categories']['items']:
-        catego = categorie['name']
-        if print_results:
-            pprint(f"- {str(catego)}")
-        all_categories.append(catego)
-    return all_categories
-
-
-def get_favorite_songs(sp, print_results=True):
+def get_current_user(sp):
     '''
-        return just the songs in the favorite categories
-        param: print_results prints all kind of Data regarding to the song
+        This function returns all kind of information regarding the current user
+        params:
+            - sp: Spotify (object)
     '''
-    fav_songs = sp.current_user_saved_tracks()
-    if print_results:
-        print("There are currently " +
-              str(fav_songs['total']) + " Songs added to your Favorite Songs list:")
 
-    # pprint(fav_songs.keys())
-    # pprint(type(fav_songs['items'])) # is a list
-    favorite_songs = []
-    song_cnt = 1
-    for song in fav_songs['items']:
+    user = sp.current_user()
 
-        # song_uri = song['track']['uri']
-        # print(song_uri)
-        # sp.add_to_queue(uri="spotify:track:6SYu5mwFpG3AmoudfJrt33")
-        break
-        title = song['track']['name']
+    data = {
+        'name': user['display_name'],
+        'email': user['email'],
+        'country': user['country'],
+        'uri': user['uri'],
+        'profile_url': user['external_urls']['spotify'],
+        'membership': user['product'],  # f.ex. premium
+        'profile_img': user['images'][0]['url']
+    }
 
-        artist = None
-        feat = 0
-        has_a_feat = False
-        artist = song['track']['album']['artists'][0]['name']
-        if len(song['track']['artists']) > 1:
-            feat = len(song['track']['artists']) - 1
-            has_a_feat = True
+    return data  # dict()
 
-        '''pprint(artist)
-        pprint(song['track']['album']['artists'][0]['name'])
-        pprint(len(song['track']['artists']))
-        len_of_artist = len(song['track']['artists'])
-        if len_of_artist == 1:
-            artist = song['track']['artists'][0]['name']
-        else:
-            artist_1, artist_2 = None, None
-            for i in range(len_of_artist):
-                if i == 0:
-                    artist_1 = song['track']['artists'][0]['name']
-                elif i == 2:
-                    artist_2 = song['track']['artists'][1]['name']
-            artist = f"{artist_1} feat. {artist_2}"
-            for i in song['track']['artists']:
-                # pprint(i.keys())
-                artist = f"{i['name']} feat. {i['name']}"
-                len_of_artist -= 1
-                if len_of_artist == 0:
-                    break
-        pprint(artist)
-        pprint(song['track']['album']['artists'][0]['name'])
 
-        album = song['track']['album']['name']
-        '''
+def get_all_top_tracks(sp):
+    '''
+        This function returns all kind of data regarding the current user's top tracks
+        params:
+            - sp: Spotify (object)
+    '''
 
-        duration_min = 0
-        rest_sec = 0
-        duration_ms = int(song['track']['duration_ms'])
-        duration_min = duration_ms / (1000 * 60)
-        rest_sec = (duration_min - int(duration_min)) * 60
+    top_songs = sp.current_user_top_tracks(time_range='long_term')
+    data = {'songs': [],
+            'artists': [],
+            'uri': [],
+            'img_url': []
+            }
 
-        date_added = convert_date(date=song['added_at'])
+    for item in top_songs['items']:
+        # pprint(item['preview_url']) # gives a url, where a slice of the song can be played
+        # pprint(item['album']['images'][0]['url'])
 
-        if print_results:
-            if has_a_feat:
-                output = f"\t{song_cnt}. {title} from {artist}, Duration: {int(duration_min)}:{int(rest_sec)} min ---> added at: {date_added}\t\t This song has {feat} features"
-            else:
-                output = f"\t{song_cnt}. {title} from {artist}, Duration: {int(duration_min)}:{int(rest_sec)} min ---> added at: {date_added}"
-            print(output)
-        # data = f"{title} from {artist}"
-        favorite_songs.append(title)
-        song_cnt += 1
+        data['songs'].append(item['name'])
+        data['artists'].append(item['artists'][0]['name'])
+        data['uri'].append(item['uri'])
+        # the max width and height (640, 640)
+        data['img_url'].append(item['album']['images'][0]['url'])
 
-    return favorite_songs
+    return data  # dict()
+
+
+def get_all_top_artists(sp):
+    '''
+        This function returns all kind of data regarding the current user's top artists
+        params:
+            - sp: Spotify (object)
+    '''
+
+    top_artists = sp.current_user_top_artists(
+        time_range="long_term")  # long_term = 50 tracks (['total'])
+    data = {'artists': [],
+            'amount_of_followers': [],
+            'genres': [],
+            'uri': []
+            }
+
+    for item in top_artists['items']:
+        data['artists'].append(item['name'])
+        data['amount_of_followers'].append(item['followers']['total'])
+        data['genres'].append(item['genres'])
+        data['uri'].append(item['uri'])
+
+    return data  # dict()
 
 
 def get_recently_played(sp, amount_of_tracks=20):
+    '''
+        This function returns all kind of data regarding the recently played tracks
+        params:
+            - sp: Spotify (object)
+            - amount_of_tracks (int): default=20
+    '''
+
     rec_played = sp.current_user_recently_played(limit=amount_of_tracks)
     data = {
         'songs': [],
         'artists': [],
-        'date': []
+        'date': [],
+        'uri': []
     }
 
     for item in rec_played['items']:
         data['songs'].append(item['track']['name'])
         data['artists'].append(item['track']['artists'][0]['name'])
         data['date'].append(convert_date(date=item['played_at']))
+        data['songs'].append(item['track']['uri'])
 
-    return data
-
-
-def get_current_user_saved_episodes(sp):
-    saved_episodes = sp.current_user_saved_episodes()
+    return data  # dict()
 
 
-def get_all_top_tracks(sp):
-    data = {'songs': [],
-            'uri': [],
-            'artists': []
-            }
+def get_tracks_from_favoritesongs(sp):
+    '''
+        This returns all kind of data from the tracks, which are added in the 'favorite Songs' categorie
+        params:
+            - sp: Spotify (object)
+    '''
+
+    fav_songs = sp.current_user_saved_tracks()
+    data = {
+        'amount': None,
+        'songs': [],
+        'artists': [],
+        'uri': []
+    }
+
+    # adds the amount of tracks, added in favorite Songs
+    data['amount'] = fav_songs['total']
+    for song in fav_songs['items']:
+        data['songs'].append(song['track']['name'])
+        data['artists'].append(song['track']['album']['artists'][0]['name'])
+        data['uri'].append(song['track']['uri'])
+
+    return data  # dict()
+
+
+def add_track_to_queue(song_uri, sp):
+    '''
+        This function adds a song to the queue of the user
+        params:
+            - sp: Spotify (object)
+            - song_uri (str): The uri of the song, which should be added to queue
+    '''
+
+    sp.add_to_queue(uri=song_uri)
+
+
+"""
+# sp = authenticate()
+# profile_url = get_current_user(sp=sp)['profile_img']
+# response = requests.get(url=profile_url)
+# profile_img = Image.open(BytesIO(response.content))
+# data = get_all_top_tracks(sp=sp)
+
+# for song_index in range(len(data['songs'])):
+#     pprint(data['songs'][song_index])
+
+# for song in data['songs']:
+#     pprint(song)
+
+# pprint(data.keys())
+# get_all_top_tracks(sp=sp)
+"""
