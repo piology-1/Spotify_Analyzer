@@ -76,7 +76,8 @@ def get_all_top_artists(sp):
     data = {'artists': [],
             'amount_of_followers': [],
             'genres': [],
-            'uri': []
+            'uri': [],
+            'img_url': []
             }
 
     for item in top_artists['items']:
@@ -84,6 +85,7 @@ def get_all_top_artists(sp):
         data['amount_of_followers'].append(item['followers']['total'])
         data['genres'].append(item['genres'])
         data['uri'].append(item['uri'])
+        data['img_url'].append(item['images'][0]['url'])
 
     return data  # dict()
 
