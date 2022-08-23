@@ -1,4 +1,3 @@
-from turtle import color
 from utils import *
 from authentication import authenticate
 import requests
@@ -34,11 +33,11 @@ class TopArtistsTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        self.top_artists_tab = QWidget()
+        # self.top_artists_tab = QWidget()
         self.data = get_all_top_artists(sp=sp)
-        self.show_data()
+        # self.show_data()
 
-    def show_data(self):
+    # def show_data(self):
         one_data_height = 175  # px
         pic_width, pic_height = 150, 150  # px
         padding_between_songs = 20  # px
@@ -95,7 +94,7 @@ class TopSongsTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        self.top_songs_tab = QWidget()
+        # self.top_songs_tab = QWidget()
         self.data = get_all_top_tracks(sp=sp)
         self.show_data()
 
@@ -113,7 +112,7 @@ class TopSongsTab(QWidget):
             self.track = str(self.data['songs'][index])
             self.track_output_text = f"{index+1}. {self.track}"
             self.track_Label = QLabel(self.track_output_text, self)
-            self.track_Label.setFont(QFont("Helvetica", 30))
+            self.track_Label.setFont(QFont("Helvetica", 50))
             self.track_Label.setStyleSheet(
                 "font-weight: bold; background: transparent")
             self.track_Label.adjustSize()
@@ -123,7 +122,7 @@ class TopSongsTab(QWidget):
             self.artist = str(self.data['artists'][index])
             self.artist_output_text = f"{self.artist}"
             self.artist_Label = QLabel(self.artist_output_text, self)
-            self.artist_Label.setFont(QFont("Helvetica", 20))
+            self.artist_Label.setFont(QFont("Helvetica", 25))
             self.artist_Label.setStyleSheet("background: transparent")
             self.artist_Label.adjustSize()
             self.artist_Label.move(
@@ -154,15 +153,15 @@ class InfoTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        self.info_tab = QWidget()
+        # self.info_tab = QWidget()
         self.data = get_current_user(sp=sp)
         self.user = self.data["name"]  # getting the currrent user name
 
-        self.show_welcome_text()
-        self.show_info()
-        self.adjustSize()
+        # self.show_welcome_text()
+        # self.show_info()
+        # self.adjustSize()
 
-    def show_welcome_text(self):
+    # def show_welcome_text(self):
         """
             This function handels the Welchome Text
         """
@@ -181,7 +180,7 @@ class InfoTab(QWidget):
         self.width_center = int(WIN_WIDTH/2 - self.welcome_text.width()/2)
         self.welcome_text.move(self.width_center, 0)
 
-    def show_info(self):
+    # def show_info(self):
         """
             This function handels the Info text
         """
@@ -207,99 +206,102 @@ class InfoTab(QWidget):
         # TODO: cloud make the profile picture Circular (https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/)
 
 
-class TabControl(QWidget):
-    """
-        This class handels all the different Tabs
-    """
+# class TabControl(QWidget):
+#     """
+#         This class handels all the different Tabs
+#     """
 
-    def __init__(self, parent: QWidget = None):
-        super(QWidget, self).__init__(parent)
+#     def __init__(self, parent: QWidget = None):
+#         super(QWidget, self).__init__(parent)
 
-        self.layout = QVBoxLayout(self)
+#         self.layout = QVBoxLayout(self)
 
-        """ Initialize tab screen and tab Bar """
-        self.all_tabs = QTabWidget()
-        # TODO: Do I need a QTabWidget() and a QTabBar()?
-        # self.tab_bar = QTabBar()
-        self.tab_bar = self.all_tabs.tabBar()
-        # self.tab_bar = self.all_tabs.tabBar() # is this eequal to self.tab_bar = QTabBar()?
+#         """ Initialize tab screen and tab Bar """
+#         self.all_tabs = QTabWidget()
+#         # TODO: Do I need a QTabWidget() and a QTabBar()?
+#         # self.tab_bar = QTabBar()
+#         self.tab_bar = self.all_tabs.tabBar()
+#         # self.tab_bar = self.all_tabs.tabBar() # is this eequal to self.tab_bar = QTabBar()?
 
-        self.set_position()  # North, West, East, South
-        self.set_Tab_shape()  # Triangular or Rounded
-        self.add_all_tabs()
+#         self.set_position()  # North, West, East, South
+#         self.set_Tab_shape()  # Triangular or Rounded
+#         self.add_all_tabs()
 
-        """ Making the Tabs moveable """
-        self.all_tabs.setMovable(True)
+#         """ Making the Tabs moveable """
+#         self.all_tabs.setMovable(True)
 
-        # makes the current Tab green
-        self.tab_bar.setStyleSheet(
-            f"background: {SPOTIFY_GREEN}; color: white; border: 5px")
+#         # makes the current Tab green
+#         self.tab_bar.setStyleSheet(
+#             f"background: {SPOTIFY_GREEN}; color: white; border: 5px")
 
-        """ resizing the Tab Bar """
-        # TODO: making the Tabs in the Tab Bar bigger and other color
-        # self.tab_bar.resize(WIN_HEIGHT, 20)
-        # self.tab_bar.setFixedSize(WIN_HEIGHT, 20)
-        # print(self.tab_bar.size())
-        # print(self.all_tabs.size())
-        # self.all_tabs.setBaseSize(WIN_WIDTH, WIN_HEIGHT)
-        # self.all_tabs.resize(WIN_WIDTH, 20)
-        # QTabBar.setFixedWidth(self, int(WIN_WIDTH/3)) == self.all_tabs.setFixedWidth(int(WIN_WIDTH/3))
+#         """ resizing the Tab Bar """
+#         # TODO: making the Tabs in the Tab Bar bigger and other color
+#         # self.tab_bar.resize(WIN_HEIGHT, 20)
+#         # self.tab_bar.setFixedSize(WIN_HEIGHT, 20)
+#         # print(self.tab_bar.size())
+#         # print(self.all_tabs.size())
+#         # self.all_tabs.setBaseSize(WIN_WIDTH, WIN_HEIGHT)
+#         # self.all_tabs.resize(WIN_WIDTH, 20)
+#         # QTabBar.setFixedWidth(self, int(WIN_WIDTH/3)) == self.all_tabs.setFixedWidth(int(WIN_WIDTH/3))
 
-        self.set_image_as_background()
+#         self.set_tab_page_background()
 
-        ''' closing the current Tab '''
-        self.all_tabs.setTabsClosable(True)
-        self.all_tabs.tabCloseRequested.connect(self.close_Tab)
+#         ''' closing the current Tab '''
+#         self.all_tabs.setTabsClosable(True)
+#         self.all_tabs.tabCloseRequested.connect(self.close_Tab)
 
-        """ Makeing the Tabs scrollable, if to many """
-        self.all_tabs.setUsesScrollButtons(True)
+#         """ Makeing the Tabs scrollable, if to many """
+#         self.all_tabs.setUsesScrollButtons(True)
 
-        self.layout.addWidget(self.all_tabs)
-        self.setLayout(self.layout)
+#         self.layout.addWidget(self.all_tabs)
+#         self.setLayout(self.layout)
 
-    def set_position(self):
-        """
-            whether the Tabs are on the North, South, West or East
-            default: QTabWidget.North
-        """
-        self.all_tabs.setTabPosition(QTabWidget.North)
+#     def set_position(self):
+#         """
+#             whether the Tabs are on the North, South, West or East
+#             default: QTabWidget.North
+#         """
+#         self.all_tabs.setTabPosition(QTabWidget.North)
 
-    def set_Tab_shape(self):
-        """
-            setting the Shape of the Tabs to Rounded or Triangular
-            default: QTabWidget.Rounded
-        """
-        self.tab_shape = QtWidgets.QTabWidget.Triangular
-        self.all_tabs.setTabShape(self.tab_shape)
+#     def set_Tab_shape(self):
+#         """
+#             setting the Shape of the Tabs to Rounded or Triangular
+#             default: QTabWidget.Rounded
+#         """
+#         self.tab_shape = QtWidgets.QTabWidget.Triangular
+#         self.all_tabs.setTabShape(self.tab_shape)
 
-    def add_all_tabs(self):
-        """
-            Adding all Tabs to the QTabWidget()
-        """
-        self.all_tabs.addTab(InfoTab(self), QIcon(
-            "imgs/info_icon.png"), "General Infos")
-        self.all_tabs.addTab(TopSongsTab(self), "Your all Time Fav's")
-        self.all_tabs.addTab(TopArtistsTab(self), "Your favorite Artists")
+#     def add_all_tabs(self):
+#         """
+#             Adding all Tabs to the QTabWidget()
+#         """
+#         self.all_tabs.addTab(InfoTab(self), QIcon(
+#             "imgs/info_icon.png"), "General Infos")
+#         self.all_tabs.addTab(TopSongsTab(self), "Your all Time Fav's")
+#         self.all_tabs.addTab(TopArtistsTab(self), "Your favorite Artists")
 
-    def set_image_as_background(self):
-        """
-            setting the background of the Tabs to a color-gradient in the colors of Spotify
-            TODO: making the Size for every resolution equal
-        """
-        # self.spotify_background = QtGui.QIcon(
-        #     "imgs/Spotify_color_gradient.png")
-        # self.spotify_background.availableSizes()
-        self.all_tabs.setStyleSheet(
-            "background-image: url(imgs/Spotify_color_gradient.png)")
+#     def set_tab_page_background(self):
+#         """
+#             setting the background of the page area from the Tabs to a color-gradient in the colors of Spotify
+#             TODO: making the Size for every resolution equal
+#         """
+#         self.all_tabs.setStyleSheet(
+#             "background-image: url(imgs/Spotify_color_gradient.png)")
 
-    def close_Tab(self, currentIndex):
-        """
-            callback Function, when the Tabs getting closed
-            TODO: adding functionality, to add the tabs again (maybe from the Info Tab?)
-            TODO: Making the Info Tab uncloseable
+#         # self.all_tabs.setStyleSheet(
+#         #     f"background-image: url(imgs/Spotify_color_gradient.png); font-size: 24px; min-width: {int(WIN_WIDTH/5)}; min-height: 50px")
 
-        """
-        self.all_tabs.removeTab(currentIndex)  # removes the current Tab
+#         # self.all_tabs.setStyleSheet(
+#         #     f"background: {SPOTIFY_GREEN}; min-width: {int(WIN_WIDTH/3)}; min-height: 50px")
+
+#     def close_Tab(self, current_Index):
+#         """
+#             callback Function, when the Tabs getting closed
+#             TODO: adding functionality, to add the tabs again (maybe from the Info Tab?)
+#             TODO: Making the Info Tab uncloseable
+
+#         """
+#         self.all_tabs.removeTab(current_Index)  # removes the current Tab
 
 
 class MainWindow(QMainWindow):   # App class inherits from the tk.Tk
@@ -310,11 +312,6 @@ class MainWindow(QMainWindow):   # App class inherits from the tk.Tk
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        self.init_geometry()
-        self.init_Tabs()
-        self.show()  # to show the Window on the screen
-
-    def init_geometry(self):
         """ configure the main window """
         self.setWindowTitle("Spotify Analyzer")
 
@@ -322,19 +319,120 @@ class MainWindow(QMainWindow):   # App class inherits from the tk.Tk
         self.screen_size = QtWidgets.QDesktopWidget().screenGeometry(-1)
         x = (self.screen_size.width()/2) - (WIN_WIDTH/2)
         y = (self.screen_size.height()/2) - (WIN_HEIGHT/2) - TASKBAR_HEIGHT
-        self.setGeometry(0, 0, self.screen_size.width(),
-                         self.screen_size.height())
+        # self.setGeometry(0, 0, 1000, 1000)
 
         """ changing the icon from the window """
-        self.spotify_logo = QtGui.QIcon("imgs/Spotify_logo.png")
-        self.setWindowIcon(self.spotify_logo)
+        spotify_logo = QtGui.QIcon("imgs/Spotify_logo.png")
+        self.setWindowIcon(spotify_logo)
 
         """ changing the background color of the Window """
         self.setStyleSheet(f"background: {BLACK}")
 
-    def init_Tabs(self):
-        self.table_widget = TabControl(self)
-        self.setCentralWidget(self.table_widget)
+        # self.init_Tabs()
+        ''' ------------------------------------------------------------------ '''
+        """ Initialize tab screen and tab Bar """
+        all_tabs = QTabWidget()
+        all_tabs.addTab(InfoTab(self), QIcon(
+            "imgs/info_icon.png"), "General Infos")
+        all_tabs.addTab(TopSongsTab(self), "Your all Time Fav's")
+        all_tabs.addTab(TopArtistsTab(self), "Your favorite Artists")
+
+        layout = QVBoxLayout()
+        layout.addWidget(all_tabs)
+        self.setLayout(layout)
+
+        self.show()  # to show the Window on the screen
+
+    # def init_Tabs(self):
+    #     # self.layout = QVBoxLayout(self)
+    #     """ Initialize tab screen and tab Bar """
+    #     self.all_tabs = QTabWidget()
+    #     self.add_all_tabs()
+
+    #     # TODO: Do I need a QTabWidget() and a QTabBar()?
+    #     # self.tab_bar = QTabBar()
+    #     # self.tab_bar = self.all_tabs.tabBar()
+    #     # self.tab_bar = self.all_tabs.tabBar() # is this eequal to self.tab_bar = QTabBar()?
+
+    #     # self.set_position()  # North, West, East, South
+    #     # self.set_Tab_shape()  # Triangular or Rounded
+    #     self.add_all_tabs()
+
+    #     """ Making the Tabs moveable """
+    #     # self.all_tabs.setMovable(True)
+
+    #     # makes the current Tab green
+    #     # self.tab_bar.setStyleSheet(
+    #     #     f"background: {SPOTIFY_GREEN}; color: white; border: 5px")
+
+    #     """ resizing the Tab Bar """
+    #     # TODO: making the Tabs in the Tab Bar bigger and other color
+    #     # self.tab_bar.resize(WIN_HEIGHT, 20)
+    #     # self.tab_bar.setFixedSize(WIN_HEIGHT, 20)
+    #     # print(self.tab_bar.size())
+    #     # print(self.all_tabs.size())
+    #     # self.all_tabs.setBaseSize(WIN_WIDTH, WIN_HEIGHT)
+    #     # self.all_tabs.resize(WIN_WIDTH, 20)
+    #     # QTabBar.setFixedWidth(self, int(WIN_WIDTH/3)) == self.all_tabs.setFixedWidth(int(WIN_WIDTH/3))
+
+    #     # self.set_tab_page_background()
+
+    #     ''' closing the current Tab '''
+    #     # self.all_tabs.setTabsClosable(True)
+    #     # self.all_tabs.tabCloseRequested.connect(self.close_Tab)
+
+    #     """ Makeing the Tabs scrollable, if to many """
+    #     # self.all_tabs.setUsesScrollButtons(True)
+
+    #     # self.layout.addWidget(self.all_tabs)
+    #     # self.setLayout(self.layout)
+
+    # def set_position(self):
+    #     """
+    #         whether the Tabs are on the North, South, West or East
+    #         default: QTabWidget.North
+    #     """
+    #     self.all_tabs.setTabPosition(QTabWidget.North)
+
+    # def set_Tab_shape(self):
+    #     """
+    #         setting the Shape of the Tabs to Rounded or Triangular
+    #         default: QTabWidget.Rounded
+    #     """
+    #     self.tab_shape = QtWidgets.QTabWidget.Triangular
+    #     self.all_tabs.setTabShape(self.tab_shape)
+
+    # def add_all_tabs(self):
+    #     """
+    #         Adding all Tabs to the QTabWidget()
+    #     """
+    #     self.all_tabs.addTab(InfoTab(self), QIcon(
+    #         "imgs/info_icon.png"), "General Infos")
+    #     self.all_tabs.addTab(TopSongsTab(self), "Your all Time Fav's")
+    #     self.all_tabs.addTab(TopArtistsTab(self), "Your favorite Artists")
+
+    # def set_tab_page_background(self):
+    #     """
+    #         setting the background of the page area from the Tabs to a color-gradient in the colors of Spotify
+    #         TODO: making the Size for every resolution equal
+    #     """
+    #     self.all_tabs.setStyleSheet(
+    #         "background-image: url(imgs/Spotify_color_gradient.png)")
+
+    #     # self.all_tabs.setStyleSheet(
+    #     #     f"background-image: url(imgs/Spotify_color_gradient.png); font-size: 24px; min-width: {int(WIN_WIDTH/5)}; min-height: 50px")
+
+    #     # self.all_tabs.setStyleSheet(
+    #     #     f"background: {SPOTIFY_GREEN}; min-width: {int(WIN_WIDTH/3)}; min-height: 50px")
+
+    # def close_Tab(self, current_Index):
+    #     """
+    #         callback Function, when the Tabs getting closed
+    #         TODO: adding functionality, to add the tabs again (maybe from the Info Tab?)
+    #         TODO: Making the Info Tab uncloseable
+
+    #     """
+    #     self.all_tabs.removeTab(current_Index)  # removes the current Tab
 
 
 app = QApplication(sys.argv)

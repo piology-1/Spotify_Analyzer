@@ -215,3 +215,6 @@ class MainApplication(tk.Tk):   # App class inherits from the tk.Tk
 
 # app = MainApplication()
 # app.mainloop()
+
+# bsp_test_song_uri = get_all_top_tracks(sp)['uri'][4]
+# add_track_to_queue(bsp_test_song_uri)
