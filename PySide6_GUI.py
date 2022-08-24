@@ -78,15 +78,11 @@ class InfoTab(QWidget):
         image_label.setStyleSheet("background: transparent")
         # TODO: cloud make the profile picture Circular (https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/)
 
-        # main_layout.addRow(image_label)
-        # QFormLayout(self) with addRow(QLabel(), QLineEdit()) provides an entry Box to the QLabel
-
         main_layout = QGridLayout(self)
         # main_layout.addWidget(QWidget, row, column, rowSpan, columnSpan, alignment)
         main_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignCenter)
         main_layout.addWidget(info_Label, 1, 0, Qt.AlignTop)
         main_layout.addWidget(image_label, 1, 1, Qt.AlignCenter)
-        # main_layout.addStretch(1)
         self.setLayout(main_layout)
 
 
@@ -106,7 +102,6 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
         self.setStyleSheet(f"background: {BLACK}")
 
         ''' ------------------------------------------------------------------ '''
-
         self.tab_widget = QTabWidget()  # creating a Tabwidget
 
         # setting the tabWidget as the main window’s central widget
@@ -130,7 +125,7 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
         # self.tab_widget.tabCloseRequested(self.close_Tab)
 
         self.tab_widget.setTabShape(QTabWidget.TabShape.Triangular)
-        self.tab_widget.setTabPosition(QTabWidget.North)
+        self.tab_widget.setTabPosition(QTabWidget.West)
         self.tab_widget.setUsesScrollButtons(True)
 
         tab_bar.setStyleSheet(
@@ -139,7 +134,8 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
             "background-image: url(imgs/Spotify_color_gradient.png)")
 
         # creating a layout for flexible usage
-        main_layout = QHBoxLayout()
+        # QHBoxLayout(self.tab_widget) was necessary     QHBoxLayout() is not working
+        main_layout = QHBoxLayout(self.tab_widget)
         main_layout.addWidget(self.tab_widget)
         self.setLayout(main_layout)
 
