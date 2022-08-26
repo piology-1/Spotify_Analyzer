@@ -1,3 +1,4 @@
+from email.utils import parseaddr
 from utils import *
 from authentication import authenticate
 import requests
@@ -35,7 +36,54 @@ class TopArtistsTab(QWidget):
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        pass
+        data = get_all_top_artists(sp=sp)
+        rows = len(data['artists'])*2  # Artist Name AND Followers
+        pic_width, pic_height = 150, 150  # px
+
+        artist_layout = QGridLayout(self)
+        artist_index = 0
+        follower_index = 0
+        for index in range(rows):
+            if index % 2 == 0:  # even rows
+                """ Visualize top Artists """
+                curr_artist = str(data['artists'][artist_index])
+
+                artist_Label = QLabel(
+                    f"{artist_index + 1}. {curr_artist}", self)
+                artist_Label.setFont(QFont("Helvetica", 25))
+                artist_Label.setStyleSheet(
+                    "font-weight: bold; background: transparent")
+
+                """ Visualize pictures """
+                pic_url = data['img_url'][artist_index]
+                picture = QImage()
+                # it comes with size(640, 640)
+                picture.loadFromData(requests.get(url=pic_url).content)
+                picture_resized = picture.scaled(pic_width, pic_height)
+                image_label = QLabel(self)
+                image_label.setPixmap(QPixmap(picture_resized))
+                image_label.setStyleSheet("background: transparent")
+
+                # SONG LEFT, PICTURE RIGHT
+                artist_layout.addWidget(artist_Label, index, 0, Qt.AlignLeft)
+                artist_layout.addWidget(
+                    image_label, index, 1, 2, 1, Qt.AlignCenter)
+
+                artist_index += 1
+            else:  # uneven rows
+                """ Visualize amount of Followers from the top Artists """
+                followers = str(data['amount_of_followers'][follower_index])
+                # \t for indentation
+                follower_Label = QLabel(f"\tFollowers - {followers}", self)
+                follower_Label.setFont(QFont("Helvetica", 15))
+                follower_Label.setStyleSheet("background: transparent")
+
+                # ARTIST LEFT, PICTURE RIGHT
+                artist_layout.addWidget(follower_Label, index, 0, Qt.AlignLeft)
+
+                follower_index += 1
+
+            self.setLayout(artist_layout)
 
 
 class TopSongsTab(QWidget):
@@ -48,11 +96,9 @@ class TopSongsTab(QWidget):
         super().__init__(parent)
         data = get_all_top_tracks(sp=sp)
         rows = len(data['songs'])*2  # songname AND Artist Name per track
-        columns = 3  # track and song_picture
         pic_width, pic_height = 150, 150  # px
 
         song_layout = QGridLayout(self)
-
         song_index = 0
         artist_index = 0
         for index in range(rows):
@@ -197,20 +243,22 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
         tab_bar = self.tab_widget.tabBar()
 
         # creating a Area, where a Scroll bar is added, when the space isn't enough
-        scrollbar = QScrollArea()
-        scrollbar.setWidgetResizable(True)
-
+        songs_scrollbar = QScrollArea()
+        songs_scrollbar.setWidgetResizable(True)
         top_songs_tab = TopSongsTab(self)  # instance of TopSongsTab
-        # top_artists_tab = TopArtistsTab(self)
-
         # setting the scrollbar to the Tab(s)
-        scrollbar.setWidget(top_songs_tab)
+        songs_scrollbar.setWidget(top_songs_tab)
+
+        artist_scrollbar = QScrollArea()
+        artist_scrollbar.setWidgetResizable(True)
+        top_artists_tab = TopArtistsTab(self)
+        artist_scrollbar.setWidget(top_artists_tab)
 
         #  adding all Tabs to the TabWidget
         self.tab_widget.addTab(InfoTab(self), QIcon(
             "imgs/info_icon.png"), "General Infos")
-        self.tab_widget.addTab(scrollbar, "Your all Time Fav's")
-        self.tab_widget.addTab(TopArtistsTab(self), "Your favorite Artists")
+        self.tab_widget.addTab(songs_scrollbar, "Your all Time Fav's")
+        self.tab_widget.addTab(artist_scrollbar, "Your favorite Artists")
 
         self.tab_widget.setMovable(True)
 
