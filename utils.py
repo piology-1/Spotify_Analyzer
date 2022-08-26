@@ -45,23 +45,43 @@ def get_all_top_tracks(sp):
     '''
 
     top_songs = sp.current_user_top_tracks(time_range='long_term')
+
     data = {'songs': [],
             'artists': [],
             'uri': [],
-            'img_url': []
+            'img_url': [],
+            'song_id': []
             }
 
     for item in top_songs['items']:
         # pprint(item['preview_url']) # gives a url, where a slice of the song can be played
         # pprint(item['album']['images'][0]['url'])
 
+        # pprint(item['id'])
+        # break
+
         data['songs'].append(item['name'])
         data['artists'].append(item['artists'][0]['name'])
         data['uri'].append(item['uri'])
         # the max width and height (640, 640)
         data['img_url'].append(item['album']['images'][0]['url'])
+        data['song_id'].append(item['id'])
 
     return data  # dict()
+
+
+def track_played_min(sp, song_id):
+    '''
+        This function returns the duration, that a specific song was played returned in minutes
+        params:
+            - sp: Spotify (object)
+            - song_id: the id of the track or song
+    '''
+
+    track_audio_data = sp.audio_analysis(track_id=song_id)
+
+    all_time_duration_min = track_audio_data['track']['duration']  # [min]
+    return int(all_time_duration_min)
 
 
 def get_all_top_artists(sp):
@@ -151,8 +171,11 @@ def add_track_to_queue(song_uri, sp):
     sp.add_to_queue(uri=song_uri)
 
 
+sp = authenticate()
+# track_played_min(sp=sp, song_id="50eJOxJiGmJ7PBZaTKpje1")
+pprint(get_all_top_tracks(sp=sp))
 """
-# sp = authenticate()
+# 
 # profile_url = get_current_user(sp=sp)['profile_img']
 # response = requests.get(url=profile_url)
 # profile_img = Image.open(BytesIO(response.content))
