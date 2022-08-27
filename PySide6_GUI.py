@@ -1,3 +1,4 @@
+from cmath import log
 from email.utils import parseaddr
 from utils import *
 from authentication import authenticate
@@ -179,13 +180,10 @@ class InfoTab(QWidget):
 
         info_Label = QLabel(
             f"I'm glad, that you're interested in this Spotify Analyzer. This Application will show you:", self)
+        info_Label.setFont(QFont("Helvetica", 20))
         info_Label.setStyleSheet("background: transparent")
         # making label multi line (don't need \n anymore, except I want a next Line)
         info_Label.setWordWrap(True)
-
-        # creating Button to link to the Tabs
-        top_songs_button = QPushButton("Yout top Songs of all time", self)
-        top_artists_button = QPushButton("Yout top Artists of all time", self)
 
         # downloading the profile pic
         user_picture_url = data['profile_img']
@@ -201,18 +199,77 @@ class InfoTab(QWidget):
         ''' Layoout Manager '''
         info_layout = QGridLayout(self)
         # main_layout.addWidget(QWidget, row, column, rowSpan, columnSpan, alignment)
-        info_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignCenter)
-        info_layout.addWidget(info_Label, 1, 0, Qt.AlignTop)
+        info_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignLeft)
+        info_layout.addWidget(info_Label, 1, 0, 1, 2,
+                              Qt.AlignLeft)  # is wrapped
+        info_layout.addWidget(image_label, 0, 3, 2, 1, Qt.AlignLeft)
+
+        ''' currently playing '''
+        current_track_data = get_currently_playing_song(sp=sp)
+        # TODO: How can I update this, when the Application is already open and the user starts listen to a song?
+        if current_track_data['is_playing']:
+            current_song = current_track_data['song']
+            current_song_artist = current_track_data['artist']
+            current_song_image = QImage()
+            current_song_image.loadFromData(
+                requests.get(url=current_track_data['img_url']).content)
+            current_song_image_resized = current_song_image.scaled(250, 250)
+
+            song_label = QLabel(f"Current Song: {current_song}", self)
+            song_label.setWordWrap(True)
+            song_label.setFont(QFont("Helvetica", 25))
+            song_label.setStyleSheet(
+                "font-weight: bold; background: transparent")
+            artist_label = QLabel(f"\t{current_song_artist}")
+            artist_label.setFont(QFont("Helvetica", 20))
+            artist_label.setStyleSheet("background: transparent")
+            img_label = QLabel(self)
+            img_label.setPixmap(QPixmap(current_song_image_resized))
+            img_label.setStyleSheet("background: transparent")
+
+            info_layout.addWidget(song_label, 2, 1, Qt.AlignLeft)
+            info_layout.addWidget(artist_label, 3, 1, Qt.AlignLeft)
+            info_layout.addWidget(img_label, 2, 0, 2, 1, Qt.AlignRight)
+        else:
+            no_song_playing_label = QLabel("No Song playing right now", self)
+            no_song_playing_label.setFont(QFont("Helvetica", 30))
+            no_song_playing_label.setStyleSheet("background: transparent")
+            info_layout.addWidget(no_song_playing_label,
+                                  2, 0, 2, 2, Qt.AlignCenter)
+
+        ''' Logout Button '''
+        logout = QPushButton(QIcon("imgs/Spotify_logo.png"), "Log out", self)
+        logout.setFont(QFont("comicsans", 15))
+        # TODO: change Size
+        logout.setStyleSheet("QPushButton{"
+                             f"background: {BLACK}; border-style: outset; border-width: 3px;"
+                             "border-radius: 10px; border-color: white; color: white; "
+                             "min-width: 50px; padding: 6px;"
+                             "}"
+                             "QPushButton::hover{"
+                             f"background-color: {SPOTIFY_GREEN};"
+                             "}")
+        # TODO: logout.connect(self.spotify_logout)
+
+        info_layout.addWidget(logout, 0, 4, Qt.AlignTop)
+
+        # creating Button to link to the Tabs
+        # top_songs_button = QPushButton("Yout top Songs of all time", self)
+        # top_artists_button = QPushButton("Yout top Artists of all time", self)
+
         # main_layout.addWidget(buttons_for_tabs, 2, 0, Qt.AlignTop) # can't add Buttongroup, because it's no Widget
-        info_layout.addWidget(top_songs_button, 2, 0, Qt.AlignTop)
-        info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
-        info_layout.addWidget(image_label, 1, 1, 3, 1, Qt.AlignCenter)
+        # info_layout.addWidget(top_songs_button, 2, 0, Qt.AlignTop)
+        # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
+
         self.setLayout(info_layout)
 
     def go_to_tab(self, tab_index):
         pass
 
     def create_circular_image(self):
+        pass
+
+    def spotify_logout(self):
         pass
 
 

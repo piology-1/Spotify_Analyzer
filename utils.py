@@ -171,10 +171,23 @@ def add_track_to_queue(song_uri, sp):
     sp.add_to_queue(uri=song_uri)
 
 
-sp = authenticate()
-# track_played_min(sp=sp, song_id="50eJOxJiGmJ7PBZaTKpje1")
-pprint(get_all_top_tracks(sp=sp))
+def get_currently_playing_song(sp):
+    currently_playing = sp.current_user_playing_track()
+
+    data = {
+        'song': currently_playing['item']['name'],
+        'artist': currently_playing['item']['artists'][0]['name'],
+        'img_url': currently_playing['item']['album']['images'][0]['url'],
+        'is_playing': currently_playing['is_playing']  # True or False
+    }
+
+    return data
+
+
 """
+# sp = authenticate()
+# track_played_min(sp=sp, song_id="50eJOxJiGmJ7PBZaTKpje1")
+# pprint(get_all_top_tracks(sp=sp))
 # 
 # profile_url = get_current_user(sp=sp)['profile_img']
 # response = requests.get(url=profile_url)
