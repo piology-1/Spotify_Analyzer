@@ -1,9 +1,8 @@
-from cmath import log
-from email.utils import parseaddr
 from utils import *
 from authentication import authenticate
 import requests
 from io import BytesIO
+import os
 from prettyprinter import pprint
 
 ''' --- GUI Imports --- '''
@@ -15,7 +14,7 @@ from PIL import Image, ImageTk
 # from PySide6.QtCore import *
 
 from PyQt5 import *
-from PyQt5.QtWidgets import *  # z.B. PySide6.QtWidgets.QVBoxLayout
+from PyQt5.QtWidgets import *  # z.B. PyQt5.QtWidgets.QVBoxLayout
 from PyQt5.QtGui import *  # QFont
 from PyQt5.QtCore import *
 
@@ -23,7 +22,11 @@ from PyQt5.QtCore import *
 WIN_WIDTH, WIN_HEIGHT = 1900, 1000  # default window geometry
 TASKBAR_HEIGHT = 40
 SPOTIFY_GREEN = "#1DB954"
+SPOTIFY_BLUE = "#10267D"
+WHITE = "#FFFFFF"
 BLACK = "#000000"
+GREY = "#6B6A69"
+PINK = "#611038"
 
 
 sp = authenticate()
@@ -58,7 +61,7 @@ class TopArtistsTab(QWidget):
                 """ Visualize pictures """
                 pic_url = data['img_url'][artist_index]
                 picture = QImage()
-                # it comes with size(640, 640)
+                # it comes with the size of (640, 640)
                 picture.loadFromData(requests.get(url=pic_url).content)
                 picture_resized = picture.scaled(pic_width, pic_height)
                 image_label = QLabel(self)
@@ -96,7 +99,7 @@ class TopSongsTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         data = get_all_top_tracks(sp=sp)
-        rows = len(data['songs'])*2  # songname AND Artist Name per track
+        rows = len(data['songs'])*2  # songname AND Artist name per track
         pic_width, pic_height = 150, 150  # px
 
         song_layout = QGridLayout(self)
@@ -143,6 +146,7 @@ class TopSongsTab(QWidget):
             else:  # uneven rows
                 """ Visualize top Tracks artists """
                 artist = str(data['artists'][artist_index])
+
                 # \t for indentation
                 artist_Label = QLabel(f"\t{artist}", self)
                 artist_Label.setFont(QFont("Helvetica", 15))
@@ -164,26 +168,27 @@ class InfoTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        self.setStyleSheet(
-            "background-image: url(imgs/Spotify_color_gradient.png)")
+        ''' Layoout Manager '''
+        info_layout = QGridLayout(self)
+
         data = get_current_user(sp=sp)
         user = data["name"]
         welcome_text_Label = QLabel(f"Hello {user}!", self)
         welcome_text_Label.setFont(QFont("Helvetica", 40))
         welcome_text_Label.setStyleSheet(
             "font-weight: bold; background: transparent")
-
-        # info_text = f"I'm glad, that you're interested in this Spotify Analyzer.\nThis Application will show you:\n\t- Your all time favorite Tracks\n\t- Your all time favorite Artists\n\t- Your all recently played Songs\n\t- The possibility, to add Songs to the queue\n\nHave fun and enjoy\n\t~Piology"
-        # info_Label = QLabel(info_text, self)
-        # info_Label.setStyleSheet("background: transparent")
-        # # TODO: https://doc.qt.io/qtforpython/overviews/richtext-layouts.html
+        # main_layout.addWidget(QWidget, row, column, rowSpan, columnSpan, alignment)
+        info_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignLeft)
+        # TODO: https://doc.qt.io/qtforpython/overviews/richtext-layouts.html
 
         info_Label = QLabel(
             f"I'm glad, that you're interested in this Spotify Analyzer. This Application will show you:", self)
         info_Label.setFont(QFont("Helvetica", 20))
         info_Label.setStyleSheet("background: transparent")
-        # making label multi line (don't need \n anymore, except I want a next Line)
+        # making label multi line (don't need manual edited \n anymore, except I want a next Line)
         info_Label.setWordWrap(True)
+        info_layout.addWidget(info_Label, 1, 0, 1, 2,
+                              Qt.AlignLeft)  # is wrapped
 
         # downloading the profile pic
         user_picture_url = data['profile_img']
@@ -192,17 +197,10 @@ class InfoTab(QWidget):
         picture_resized = user_picture.scaled(600, 600)
         image_label = QLabel(self)
         image_label.setPixmap(QPixmap(user_picture))
-        # image_label.show() # I don't need this, I guess ?! the Layout Manager takes cae of this?!
+        # image_label.show() # I don't need this, I guess ?! the Layout Manager takes care of this?!
         image_label.setStyleSheet("background: transparent")
-        # TODO: cloud make the profile picture Circular (https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/)
-
-        ''' Layoout Manager '''
-        info_layout = QGridLayout(self)
-        # main_layout.addWidget(QWidget, row, column, rowSpan, columnSpan, alignment)
-        info_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignLeft)
-        info_layout.addWidget(info_Label, 1, 0, 1, 2,
-                              Qt.AlignLeft)  # is wrapped
         info_layout.addWidget(image_label, 0, 3, 2, 1, Qt.AlignLeft)
+        # TODO: cloud make the profile picture Circular (https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/)
 
         ''' currently playing '''
         current_track_data = get_currently_playing_song(sp=sp)
@@ -220,17 +218,19 @@ class InfoTab(QWidget):
             song_label.setFont(QFont("Helvetica", 25))
             song_label.setStyleSheet(
                 "font-weight: bold; background: transparent")
+            info_layout.addWidget(song_label, 2, 1, Qt.AlignLeft)
+
             artist_label = QLabel(f"\t{current_song_artist}")
             artist_label.setFont(QFont("Helvetica", 20))
             artist_label.setStyleSheet("background: transparent")
+            info_layout.addWidget(artist_label, 3, 1, Qt.AlignLeft)
+
             img_label = QLabel(self)
             img_label.setPixmap(QPixmap(current_song_image_resized))
             img_label.setStyleSheet("background: transparent")
-
-            info_layout.addWidget(song_label, 2, 1, Qt.AlignLeft)
-            info_layout.addWidget(artist_label, 3, 1, Qt.AlignLeft)
             info_layout.addWidget(img_label, 2, 0, 2, 1, Qt.AlignRight)
-        else:
+
+        elif not current_track_data['is_playing'] or current_track_data == None:
             no_song_playing_label = QLabel("No Song playing right now", self)
             no_song_playing_label.setFont(QFont("Helvetica", 30))
             no_song_playing_label.setStyleSheet("background: transparent")
@@ -241,6 +241,7 @@ class InfoTab(QWidget):
         logout = QPushButton(QIcon("imgs/Spotify_logo.png"), "Log out", self)
         logout.setFont(QFont("comicsans", 15))
         # TODO: change Size
+
         logout.setStyleSheet("QPushButton{"
                              f"background: {BLACK}; border-style: outset; border-width: 3px;"
                              "border-radius: 10px; border-color: white; color: white; "
@@ -249,7 +250,7 @@ class InfoTab(QWidget):
                              "QPushButton::hover{"
                              f"background-color: {SPOTIFY_GREEN};"
                              "}")
-        # TODO: logout.connect(self.spotify_logout)
+        # TODO: logout.clicked.connect(self.spotify_logout)
 
         info_layout.addWidget(logout, 0, 4, Qt.AlignTop)
 
@@ -261,6 +262,10 @@ class InfoTab(QWidget):
         # info_layout.addWidget(top_songs_button, 2, 0, Qt.AlignTop)
         # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
 
+        ''' Controll over songs area '''
+        # frame which holds pause, next, previous etc.
+        # music_control = QFrame(self)
+
         self.setLayout(info_layout)
 
     def go_to_tab(self, tab_index):
@@ -270,10 +275,11 @@ class InfoTab(QWidget):
         pass
 
     def spotify_logout(self):
-        pass
+        if os.path.exists(".cache"):
+            os.remove(".cache")
 
 
-class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
+class MainWindow(QMainWindow):
     """
         This class handels all the Widgets, Tabs etc.
     """
@@ -293,13 +299,13 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
         # setting the tabWidget as the main window’s central widget
         self.setCentralWidget(self.tab_widget)
 
-        # TODO: Do I need a QTabWidget() and a QTabBar()?
+        # TODO: Do I need a QTabWidget() AND a QTabBar()?
         # tab_bar = QTabBar()
         # tab_bar = all_tabs.tabBar()
         # tab_bar = all_tabs.tabBar() # is this eequal to tab_bar = QTabBar()?
         tab_bar = self.tab_widget.tabBar()
 
-        # creating a Area, where a Scroll bar is added, when the space isn't enough
+        # creating an Area, where a Scroll bar is added, when the space isn't enough
         songs_scrollbar = QScrollArea()
         songs_scrollbar.setWidgetResizable(True)
         top_songs_tab = TopSongsTab(self)  # instance of TopSongsTab
@@ -323,14 +329,47 @@ class MainWindow(QMainWindow):   # It dosn't really work with QMainWindow
 
         # self.tab_widget.tabCloseRequested(self.close_Tab)
 
-        self.tab_widget.setTabShape(QTabWidget.TabShape.Triangular)
+        self.tab_widget.setTabShape(QTabWidget.TabShape.Rounded)
         self.tab_widget.setTabPosition(QTabWidget.North)
         self.tab_widget.setUsesScrollButtons(True)
 
-        tab_bar.setStyleSheet(
-            f"background: {SPOTIFY_GREEN}; color: white; border: 5px")  # making the Tab Bar green
-        self.tab_widget.setStyleSheet(
-            "background-image: url(imgs/Spotify_color_gradient.png)")  # making the page of the tabs green/black
+        # setting the background of the tabbar transparent
+        tab_bar.setStyleSheet("background: transparent")
+        curr_win_width, curr_win_height = self.width(), self.height()
+        # styling the Tabs and the tabpage
+        self.tab_widget.setStyleSheet("QWidget{"
+                                      # making the page of the tabs green/black
+                                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
+                                      # factors in % 1==completely width and height and so on
+                                      f"stop: 0 {SPOTIFY_GREEN}, stop: 1 {BLACK});"
+                                      "}"
+                                      "QTabWidget::tab-bar{"
+                                      "alignment: center;"
+                                      "}"
+                                      # The tab widget frame at the top
+                                      "QTabWidget::pane{"
+                                      f"border-top: 5px solid {WHITE};"
+                                      "position: absolute; top: -20px;"  # shifts the tabs in the border
+                                      "}"
+                                      # making the Tabs in the Tab Bar green
+                                      "QTabBar::tab {"
+                                      f"background:  {SPOTIFY_GREEN};"
+                                      # = border-bottom-color etc.
+                                      f"border: 2px solid {WHITE};"
+                                      "border-top-left-radius: 10px; border-top-right-radius: 10px;"
+                                      "padding: 8px;"
+                                      f"font: Arial; color: {WHITE};"
+                                      "}"
+                                      "QTabBar::tab:selected {"
+                                      f"background:  {SPOTIFY_BLUE};"
+                                      # same as the pane
+                                      f"border-top: 5px solid {WHITE};"
+                                      "}"
+                                      # QTabBar::tab:selected,
+                                      "QTabBar::tab:hover {"
+                                      # same as the pane
+                                      f"border: 5px solid {GREY};"
+                                      "}")
 
         # creating a layout for flexible usage
         # QHBoxLayout(self.tab_widget) was necessary     QHBoxLayout() is not working

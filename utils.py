@@ -1,3 +1,4 @@
+from turtle import position
 from prettyprinter import pprint
 from authentication import authenticate
 import requests
@@ -54,12 +55,6 @@ def get_all_top_tracks(sp):
             }
 
     for item in top_songs['items']:
-        # pprint(item['preview_url']) # gives a url, where a slice of the song can be played
-        # pprint(item['album']['images'][0]['url'])
-
-        # pprint(item['id'])
-        # break
-
         data['songs'].append(item['name'])
         data['artists'].append(item['artists'][0]['name'])
         data['uri'].append(item['uri'])
@@ -150,7 +145,6 @@ def get_tracks_from_favoritesongs(sp):
         'uri': []
     }
 
-    # adds the amount of tracks, added in favorite Songs
     data['amount'] = fav_songs['total']
     for song in fav_songs['items']:
         data['songs'].append(song['track']['name'])
@@ -174,16 +168,94 @@ def add_track_to_queue(song_uri, sp):
 def get_currently_playing_song(sp):
     currently_playing = sp.current_user_playing_track()
 
-    data = {
-        'song': currently_playing['item']['name'],
-        'artist': currently_playing['item']['artists'][0]['name'],
-        'img_url': currently_playing['item']['album']['images'][0]['url'],
-        'is_playing': currently_playing['is_playing']  # True or False
-    }
+    if currently_playing['is_playing']:
+        data = {
+            'song': currently_playing['item']['name'],
+            'artist': currently_playing['item']['artists'][0]['name'],
+            'img_url': currently_playing['item']['album']['images'][0]['url'],
+            'is_playing': currently_playing['is_playing']  # True or False
+        }
 
-    return data
+        return data
+
+    else:
+        return None
 
 
+def play_next_track(sp):
+    """
+        This function skips to the next track.
+        A Device should be active and open spotify
+    """
+    # sp.next_track()
+    try:
+        sp.next_track()
+    except:
+        print("Couldn't skip, because no Device is currently active!")
+
+
+def play_previous_track(sp):
+    """
+        This function skips to the previous track.
+        A Device should be active and open spotify
+    """
+    try:
+        sp.previous_track()
+    except:
+        print("Couldn't skip, because no Device is currently active!")
+
+
+def pause_current_track(sp):
+    """
+        This function pauses track.
+        A Device should be active and open spotify
+    """
+    try:
+        sp.pause_playback()
+    except:
+        print("Couldn't pause, because no Device is currently active!")
+
+
+def start_current_track(sp):
+    """
+        This function starts track.
+        A Device should be active and open spotify
+    """
+    try:
+        sp.start_playback(position_ms=0)
+    except:
+        print("Couldn't start, because no Device is currently active!")
+
+
+def set_repeat_mode(sp):
+    """
+        This function sets the state in repeatmode.
+        A Device should be active and open spotify
+    """
+    sp.repeat(state="track")
+
+
+def set_shuffle_mode(sp):
+    """
+        This function sets the state in shufflemode.
+        A Device should be active and open spotify
+    """
+    sp.shuffle(state=True)  # "true"
+
+
+def control_volume(sp, volume_percent):
+    """
+        This function sets the volume to the given percentage value
+        A Device should be active and open spotify
+    """
+    sp.volume(volume_percent=volume_percent)
+
+
+# sp = authenticate()
+# start_current_track(sp=sp)
+# pause_current_track(sp=sp)
+# play_previous_track(sp=sp)
+# pprint(get_current_user(sp=sp))
 """
 # sp = authenticate()
 # track_played_min(sp=sp, song_id="50eJOxJiGmJ7PBZaTKpje1")

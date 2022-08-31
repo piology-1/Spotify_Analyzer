@@ -1,8 +1,8 @@
-# # ---  Websites:
-# # https://developer.spotify.com/documentation/general/guides/authorization/code-flow/
-# # https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
-# # https://developer.spotify.com/dashboard/applications/92cce333b3da417a95d8ca738477b241
-# ### ----------------------------------------------------------------------------------------------- ###
+""" Websites:
+        https://developer.spotify.com/documentation/general/guides/authorization/code-flow/
+        https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
+        https://developer.spotify.com/dashboard/applications/92cce333b3da417a95d8ca738477b241
+"""
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
