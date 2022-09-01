@@ -168,27 +168,23 @@ class InfoTab(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        ''' Layoout Manager '''
-        info_layout = QGridLayout(self)
+        ''' MAIN INFO Layoout Manager '''
+        main_info_layout = QGridLayout(self)
 
         data = get_current_user(sp=sp)
+
         user = data["name"]
         welcome_text_Label = QLabel(f"Hello {user}!", self)
         welcome_text_Label.setFont(QFont("Helvetica", 40))
         welcome_text_Label.setStyleSheet(
             "font-weight: bold; background: transparent")
         # main_layout.addWidget(QWidget, row, column, rowSpan, columnSpan, alignment)
-        info_layout.addWidget(welcome_text_Label, 0, 0, 1, 2, Qt.AlignLeft)
+        main_info_layout.addWidget(
+            welcome_text_Label, 0, 0, Qt.AlignCenter)
         # TODO: https://doc.qt.io/qtforpython/overviews/richtext-layouts.html
 
-        info_Label = QLabel(
-            f"I'm glad, that you're interested in this Spotify Analyzer. This Application will show you:", self)
-        info_Label.setFont(QFont("Helvetica", 20))
-        info_Label.setStyleSheet("background: transparent")
-        # making label multi line (don't need manual edited \n anymore, except I want a next Line)
-        info_Label.setWordWrap(True)
-        info_layout.addWidget(info_Label, 1, 0, 1, 2,
-                              Qt.AlignLeft)  # is wrapped
+        """ Info Text Manager """
+        info_text_layout = QHBoxLayout(self)
 
         # downloading the profile pic
         user_picture_url = data['profile_img']
@@ -199,17 +195,28 @@ class InfoTab(QWidget):
         image_label.setPixmap(QPixmap(user_picture))
         # image_label.show() # I don't need this, I guess ?! the Layout Manager takes care of this?!
         image_label.setStyleSheet("background: transparent")
-        info_layout.addWidget(image_label, 0, 3, 2, 1, Qt.AlignLeft)
+        info_text_layout.addWidget(image_label)
         # TODO: cloud make the profile picture Circular (https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/)
 
+        info_Label = QLabel(
+            f"I'm glad, that you're interested in this Spotify Analyzer. I need to stretch the Information text, so I will just write a litte bit more, if thats okay for you. Hope so. See ya. Push yoursef\nBest, Piology", self)
+        info_Label.setFont(QFont("Helvetica", 20))
+        # making label multi line (don't need manual edited \n anymore, except I want a next Line)
+        info_Label.setWordWrap(True)
+        info_Label.setStyleSheet("background: transparent")
+        info_text_layout.addWidget(info_Label)
+
+        main_info_layout.addLayout(info_text_layout, 1, 0, Qt.AlignLeft)
+
         ''' currently playing '''
+        currently_playing_layout = QHBoxLayout(self)
+
         current_track_data = get_currently_playing_song(sp=sp)
         if (not current_track_data) or (not current_track_data['is_playing']):
             no_song_playing_label = QLabel("No Song playing right now", self)
             no_song_playing_label.setFont(QFont("Helvetica", 30))
             no_song_playing_label.setStyleSheet("background: transparent")
-            info_layout.addWidget(no_song_playing_label,
-                                  2, 0, 2, 2, Qt.AlignCenter)
+            currently_playing_layout.addWidget(no_song_playing_label)
 
         else:
             current_song = current_track_data['song']
@@ -219,40 +226,44 @@ class InfoTab(QWidget):
                 requests.get(url=current_track_data['img_url']).content)
             current_song_image_resized = current_song_image.scaled(250, 250)
 
-            song_label = QLabel(f"Current Song: {current_song}", self)
-            song_label.setWordWrap(True)
-            song_label.setFont(QFont("Helvetica", 25))
-            song_label.setStyleSheet(
+            song_artist_label = QLabel(
+                f"Current Song:\n{current_song} - {current_song_artist}", self)
+            song_artist_label.setWordWrap(True)
+            song_artist_label.setFont(QFont("Helvetica", 20))
+            song_artist_label.setStyleSheet(
                 "font-weight: bold; background: transparent")
-            info_layout.addWidget(song_label, 2, 1, Qt.AlignLeft)
-
-            artist_label = QLabel(f"\t{current_song_artist}")
-            artist_label.setFont(QFont("Helvetica", 20))
-            artist_label.setStyleSheet("background: transparent")
-            info_layout.addWidget(artist_label, 3, 1, Qt.AlignLeft)
+            currently_playing_layout.addWidget(song_artist_label)
 
             img_label = QLabel(self)
             img_label.setPixmap(QPixmap(current_song_image_resized))
             img_label.setStyleSheet("background: transparent")
-            info_layout.addWidget(img_label, 2, 0, 2, 1, Qt.AlignRight)
+            currently_playing_layout.addWidget(img_label)
+
         # TODO: How can I update this, when the Application is already open and the user starts listen to a song?
+        main_info_layout.addLayout(
+            currently_playing_layout, 2, 0, Qt.AlignLeft)
 
         ''' Logout Button '''
         logout = QPushButton(QIcon("icons/log-out.svg"), "\tLog out", self)
         logout.setFont(QFont("comicsans", 15))
+        logout.setMinimumSize(250, 50)
+        logout.setToolTip("Log-out")  # hover_message
         # TODO: change Size
 
         logout.setStyleSheet("QPushButton{"
                              f"background: {BLACK}; border-style: outset; border-width: 3px;"
-                             "border-radius: 10px; border-color: white; color: white; "
-                             "min-width: 50px; padding: 6px;"
+                             "border-radius: 10px; border-color: white; color: white;"
+                             "padding: 6px;"  # min-width: 50px;
                              "}"
                              "QPushButton::hover{"
                              f"background-color: {SPOTIFY_GREEN};"
+                             "}"
+                             "QToolTip{"
+                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
                              "}")
         # TODO: logout.clicked.connect(self.spotify_logout)
-
-        info_layout.addWidget(logout, 0, 4, Qt.AlignTop)
+        main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
 
         # creating Button to link to the Tabs
         # top_songs_button = QPushButton("Yout top Songs of all time", self)
@@ -263,10 +274,65 @@ class InfoTab(QWidget):
         # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
 
         ''' Controll over songs area '''
-        # frame which holds pause, next, previous etc.
-        # music_control = QFrame(self)
+        music_layout = QHBoxLayout(self)
 
-        self.setLayout(info_layout)
+        previous_track = QPushButton(
+            QIcon("icons/skip-back.svg"), "", self)
+        previous_track.setMinimumSize(100, 100)
+        previous_track.setToolTip("Skip Back")
+        # setting radius and border
+        previous_track.setStyleSheet("QPushButton{"
+                                     "background: transparent; border-style: outset;"
+                                     "border-radius: 50; border : 4px solid white; "
+                                     "}"
+                                     "QToolTip{"
+                                     f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                     f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                     "}")
+        music_layout.addWidget(previous_track)
+
+        pause = QPushButton(QIcon("icons/pause.svg"), "", self)
+        pause.setMinimumSize(100, 100)
+        pause.setToolTip("Pause Track")
+        pause.setStyleSheet("QPushButton{"
+                            "background: transparent; border-style: outset;"
+                            "border-radius: 50; border : 4px solid white; "
+                            "}"
+                            "QToolTip{"
+                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                            "}")
+        music_layout.addWidget(pause)
+
+        play = QPushButton(QIcon("icons/play.svg"), "", self)
+        play.setMinimumSize(100, 100)
+        play.setToolTip("Play Track")
+        play.setStyleSheet("QPushButton{"
+                           "background: transparent; border-style: outset;"
+                           "border-radius: 50; border : 4px solid white; "
+                           "}"
+                           "QToolTip{"
+                           f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                           f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                           "}")
+        music_layout.addWidget(play)
+
+        next_track = QPushButton(
+            QIcon("icons/skip-forward.svg"), "", self)
+        next_track.setMinimumSize(100, 100)
+        next_track.setToolTip("Skip Forward")
+        next_track.setStyleSheet("QPushButton{"
+                                 "background: transparent; border-style: outset;"
+                                 "border-radius: 50; border : 4px solid white; "
+                                 "}"
+                                 "QToolTip{"
+                                 f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                 f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                 "}")
+        music_layout.addWidget(next_track)
+        main_info_layout.addLayout(music_layout, 3, 0, Qt.AlignLeft)
+
+        self.setLayout(main_info_layout)
 
     def go_to_tab(self, tab_index):
         pass
