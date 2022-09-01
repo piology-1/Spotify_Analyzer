@@ -204,8 +204,14 @@ class InfoTab(QWidget):
 
         ''' currently playing '''
         current_track_data = get_currently_playing_song(sp=sp)
-        # TODO: How can I update this, when the Application is already open and the user starts listen to a song?
-        if current_track_data['is_playing']:
+        if (not current_track_data) or (not current_track_data['is_playing']):
+            no_song_playing_label = QLabel("No Song playing right now", self)
+            no_song_playing_label.setFont(QFont("Helvetica", 30))
+            no_song_playing_label.setStyleSheet("background: transparent")
+            info_layout.addWidget(no_song_playing_label,
+                                  2, 0, 2, 2, Qt.AlignCenter)
+
+        else:
             current_song = current_track_data['song']
             current_song_artist = current_track_data['artist']
             current_song_image = QImage()
@@ -229,16 +235,10 @@ class InfoTab(QWidget):
             img_label.setPixmap(QPixmap(current_song_image_resized))
             img_label.setStyleSheet("background: transparent")
             info_layout.addWidget(img_label, 2, 0, 2, 1, Qt.AlignRight)
-
-        elif not current_track_data['is_playing'] or current_track_data == None:
-            no_song_playing_label = QLabel("No Song playing right now", self)
-            no_song_playing_label.setFont(QFont("Helvetica", 30))
-            no_song_playing_label.setStyleSheet("background: transparent")
-            info_layout.addWidget(no_song_playing_label,
-                                  2, 0, 2, 2, Qt.AlignCenter)
+        # TODO: How can I update this, when the Application is already open and the user starts listen to a song?
 
         ''' Logout Button '''
-        logout = QPushButton(QIcon("imgs/Spotify_logo.png"), "Log out", self)
+        logout = QPushButton(QIcon("icons/log-out.svg"), "\tLog out", self)
         logout.setFont(QFont("comicsans", 15))
         # TODO: change Size
 
@@ -314,14 +314,15 @@ class MainWindow(QMainWindow):
 
         artist_scrollbar = QScrollArea()
         artist_scrollbar.setWidgetResizable(True)
-        top_artists_tab = TopArtistsTab(self)
-        artist_scrollbar.setWidget(top_artists_tab)
+        artist_scrollbar.setWidget(TopArtistsTab(self))
 
         #  adding all Tabs to the TabWidget
         self.tab_widget.addTab(InfoTab(self), QIcon(
-            "imgs/info_icon.png"), "General Infos")
-        self.tab_widget.addTab(songs_scrollbar, "Your all Time Fav's")
-        self.tab_widget.addTab(artist_scrollbar, "Your favorite Artists")
+            "icons/info.svg"), "General Infos")
+        self.tab_widget.addTab(songs_scrollbar, QIcon(
+            "icons/top_tracks.svg"), "Your all Time Fav's")
+        self.tab_widget.addTab(artist_scrollbar, QIcon(
+            "icons/top_artists.svg"), "Your favorite Artists")
 
         self.tab_widget.setMovable(True)
 
@@ -339,6 +340,7 @@ class MainWindow(QMainWindow):
         # styling the Tabs and the tabpage
         self.tab_widget.setStyleSheet("QWidget{"
                                       # making the page of the tabs green/black
+                                      # top lef and bottom right
                                       "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
                                       # factors in % 1==completely width and height and so on
                                       f"stop: 0 {SPOTIFY_GREEN}, stop: 1 {BLACK});"

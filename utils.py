@@ -168,7 +168,8 @@ def add_track_to_queue(song_uri, sp):
 def get_currently_playing_song(sp):
     currently_playing = sp.current_user_playing_track()
 
-    if currently_playing['is_playing']:
+    # if currently_playing['is_playing']:
+    try:
         data = {
             'song': currently_playing['item']['name'],
             'artist': currently_playing['item']['artists'][0]['name'],
@@ -178,8 +179,9 @@ def get_currently_playing_song(sp):
 
         return data
 
-    else:
-        return None
+    # else:
+    except TypeError:
+        return False
 
 
 def play_next_track(sp):
@@ -252,6 +254,7 @@ def control_volume(sp, volume_percent):
 
 
 # sp = authenticate()
+# pprint(get_currently_playing_song(sp=sp))
 # start_current_track(sp=sp)
 # pause_current_track(sp=sp)
 # play_previous_track(sp=sp)
