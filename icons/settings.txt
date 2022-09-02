@@ -1,0 +1,6 @@
+Icons from: https://feathericons.com/
+
+''' General properties of each used icon'''
+Size: 32px
+Stroke width: 2px
+Color: white

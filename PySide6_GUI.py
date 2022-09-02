@@ -184,7 +184,7 @@ class InfoTab(QWidget):
         # TODO: https://doc.qt.io/qtforpython/overviews/richtext-layouts.html
 
         """ Info Text Manager """
-        info_text_layout = QHBoxLayout(self)
+        info_text_layout = QHBoxLayout()  # not self as an argument
 
         # downloading the profile pic
         user_picture_url = data['profile_img']
@@ -209,7 +209,7 @@ class InfoTab(QWidget):
         main_info_layout.addLayout(info_text_layout, 1, 0, Qt.AlignLeft)
 
         ''' currently playing '''
-        currently_playing_layout = QHBoxLayout(self)
+        currently_playing_layout = QHBoxLayout()
 
         current_track_data = get_currently_playing_song(sp=sp)
         if (not current_track_data) or (not current_track_data['is_playing']):
@@ -274,7 +274,8 @@ class InfoTab(QWidget):
         # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
 
         ''' Controll over songs area '''
-        music_layout = QHBoxLayout(self)
+        # TODO: Put this part in the if else statement
+        music_layout = QHBoxLayout()
 
         previous_track = QPushButton(
             QIcon("icons/skip-back.svg"), "", self)
@@ -391,9 +392,7 @@ class MainWindow(QMainWindow):
             "icons/top_artists.svg"), "Your favorite Artists")
 
         self.tab_widget.setMovable(True)
-
-        self.tab_widget.setTabsClosable(True)
-
+        self.tab_widget.setTabsClosable(True)  # changed Icon below
         # self.tab_widget.tabCloseRequested(self.close_Tab)
 
         self.tab_widget.setTabShape(QTabWidget.TabShape.Rounded)
@@ -437,7 +436,18 @@ class MainWindow(QMainWindow):
                                       "QTabBar::tab:hover {"
                                       # same as the pane
                                       f"border: 5px solid {GREY};"
-                                      "}")
+                                      "}"
+                                      "QTabBar::close-button {"
+                                      "image: url(icons/close_x.svg)"
+                                      "}"
+                                      "QTabBar::close-button:hover {"
+                                      "image: url(icons/close_x_hover.svg)"
+                                      "}"
+                                      #   "QToolTip{"
+                                      #   f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                      #   f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                      #   "}"
+                                      )
 
         # creating a layout for flexible usage
         # QHBoxLayout(self.tab_widget) was necessary     QHBoxLayout() is not working
