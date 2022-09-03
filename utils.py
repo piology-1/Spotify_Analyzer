@@ -1,7 +1,8 @@
-from turtle import position
+from urllib.error import HTTPError
 from prettyprinter import pprint
 from authentication import authenticate
 import requests
+import spotipy
 
 
 def convert_date(date):
@@ -192,8 +193,9 @@ def play_next_track(sp):
     # sp.next_track()
     try:
         sp.next_track()
-    except:
-        print("Couldn't skip, because no Device is currently active!")
+        return True
+    except Exception:
+        return False
 
 
 def play_previous_track(sp):
@@ -203,19 +205,9 @@ def play_previous_track(sp):
     """
     try:
         sp.previous_track()
-    except:
-        print("Couldn't skip, because no Device is currently active!")
-
-
-def pause_current_track(sp):
-    """
-        This function pauses track.
-        A Device should be active and open spotify
-    """
-    try:
-        sp.pause_playback()
-    except:
-        print("Couldn't pause, because no Device is currently active!")
+        return True
+    except Exception:
+        return False
 
 
 def start_current_track(sp):
@@ -225,8 +217,32 @@ def start_current_track(sp):
     """
     try:
         sp.start_playback(position_ms=0)
-    except:
-        print("Couldn't start, because no Device is currently active!")
+        return True
+
+    except spotipy.exceptions.SpotifyException as e:
+        """
+            Error 404: No active device found
+            Error 403: Device is currently active and a track is already playing
+        """
+        # print(e.http_status)
+        return e.http_status
+
+    # TODO: need to handle HTTP Error for PUT to https://api.spotify.com/v1/me/player/play with Params: {} returned 403 due to Player command failed: Restriction violated in console
+    # except Exception as errh:
+    #     print("do I get here???")
+        # print("Http Error:", errh.with_traceback(errh))
+
+
+def pause_current_track(sp):
+    """
+        This function pauses track.
+        A Device should be active and open spotify
+    """
+    try:
+        sp.pause_playback()
+        return True
+    except Exception:
+        return False
 
 
 def set_repeat_mode(sp):
@@ -250,10 +266,12 @@ def control_volume(sp, volume_percent):
         This function sets the volume to the given percentage value
         A Device should be active and open spotify
     """
+    # ERROR: Player command failed: Cannot control device volume, reason: VOLUME_CONTROL_DISALLOW
     sp.volume(volume_percent=volume_percent)
 
 
 # sp = authenticate()
+# start_current_track(sp=sp)
 # pprint(get_currently_playing_song(sp=sp))
 # start_current_track(sp=sp)
 # pause_current_track(sp=sp)

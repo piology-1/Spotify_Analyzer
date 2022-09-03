@@ -1,3 +1,4 @@
+from turtle import title
 from utils import *
 from authentication import authenticate
 import requests
@@ -40,14 +41,24 @@ class TopArtistsTab(QWidget):
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
+
         data = get_all_top_artists(sp=sp)
         rows = len(data['artists'])*2  # Artist Name AND Followers
         pic_width, pic_height = 150, 150  # px
 
         artist_layout = QGridLayout(self)
+        title = QLabel("Your top artists of all time\n", self)
+        title.setFont(QFont("Helvetica", 35))
+        title.setStyleSheet(
+            "font-weight: bold; background: transparent")
+        artist_layout.addWidget(title, 0, 0, 1, 2, Qt.AlignCenter)
+
+        # artist_layout.addWidget(QLine(), 1, 0, 1, 2, Qt.AlignCenter)
+
         artist_index = 0
         follower_index = 0
-        for index in range(rows):
+        # index = 1
+        for index in range(2, rows+2, 1):
             if index % 2 == 0:  # even rows
                 """ Visualize top Artists """
                 curr_artist = str(data['artists'][artist_index])
@@ -103,9 +114,16 @@ class TopSongsTab(QWidget):
         pic_width, pic_height = 150, 150  # px
 
         song_layout = QGridLayout(self)
+
+        title = QLabel("Your top tracks of all time\n", self)
+        title.setFont(QFont("Helvetica", 35))
+        title.setStyleSheet(
+            "font-weight: bold; background: transparent")
+        song_layout.addWidget(title, 0, 0, 1, 2, Qt.AlignCenter)
+
         song_index = 0
         artist_index = 0
-        for index in range(rows):
+        for index in range(2, rows+2, 1):
             if index % 2 == 0:  # even rows
 
                 """ Visualize top Tracks """
@@ -316,6 +334,8 @@ class InfoTab(QWidget):
                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
                            "}")
+        play.clicked.connect(self.play_track)
+
         music_layout.addWidget(play)
 
         next_track = QPushButton(
@@ -330,10 +350,80 @@ class InfoTab(QWidget):
                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
                                  f"border-radius: 5px; opacity: 200; color: {WHITE}"
                                  "}")
+        next_track.clicked.connect(self.skip_track)
         music_layout.addWidget(next_track)
         main_info_layout.addLayout(music_layout, 3, 0, Qt.AlignLeft)
 
+        volume_control_layout = QHBoxLayout()
+        volume_slider = QSlider(Qt.Orientation.Horizontal, self)
+        volume_slider.setMaximumSize(400, 20)
+        volume_slider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                border: 1px solid #999999;
+                height: 8px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
+                margin: 2px 0;
+            }
+            QSlider::handle:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+                border: 1px solid #5c5c5c;
+                width: 18px;
+                margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+                border-radius: 3px;
+            }
+                                    """)
+
+        volume_slider.valueChanged.connect(self.change_value)
+
+        volume_control_layout.addWidget(volume_slider)
+        main_info_layout.addLayout(volume_control_layout, 4, 0, Qt.AlignLeft)
+
         self.setLayout(main_info_layout)
+
+    def play_track(self):
+        if start_current_track(sp=sp):
+            # everything is fine: connected to a device and not currently playing
+            pass
+        elif start_current_track(sp=sp) == 403:
+            # Error 404: A track is already playing
+            # go on, nothing should happen
+            pass
+        elif start_current_track(sp=sp) == 404:
+            error_msg = QMessageBox()
+            error_msg.setIcon(QMessageBox.Critical)
+            error_msg.setText(
+                "Could not skip, because no Device is currently active!")
+            error_msg.setInformativeText(
+                "We couldn not connect to your device, because there is no one active at the moment\nmake sure you have turend a device on!")
+            error_msg.setWindowTitle("Conection Error")
+            error_msg.exec_()
+        else:
+            error_msg = QMessageBox()
+            error_msg.setIcon(QMessageBox.Critical)
+            error_msg.setText("Unkown error accoured")
+            error_msg.setInformativeText(
+                "An undefined and unkown error accoured.\n Please try later again!")
+            error_msg.setWindowTitle("Unkown Error")
+            error_msg.exec_()
+
+    def skip_track(self):
+        if play_next_track(sp=sp):
+            pass
+        else:
+            error_msg = QMessageBox()
+            error_msg.setIcon(QMessageBox.Critical)
+            error_msg.setText(
+                "Could not skip, because no Device is currently active!")
+            error_msg.setInformativeText(
+                "We couldn not connect to your device, because there is no one active at the moment\nmake sure you have turend a device on!")
+            error_msg.setWindowTitle("Conection Error")
+            error_msg.exec_()
+
+    def change_value(self, value):
+        '''
+            volume_slider.valueChanged.connect(self.change_value) returns a int between 0 and 99
+        '''
+        print(value)
 
     def go_to_tab(self, tab_index):
         pass
