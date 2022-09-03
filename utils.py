@@ -162,25 +162,32 @@ def add_track_to_queue(song_uri, sp):
             - sp: Spotify (object)
             - song_uri (str): The uri of the song, which should be added to queue
     '''
-
-    sp.add_to_queue(uri=song_uri)
+    try:
+        sp.add_to_queue(uri=song_uri)
+        return True
+    except spotipy.exceptions.SpotifyException as e:
+        """
+            Error 404: No active device found            
+        """
+        return e.http_status
+    except Exception:
+        return False
 
 
 def get_currently_playing_song(sp):
     currently_playing = sp.current_user_playing_track()
 
-    # if currently_playing['is_playing']:
     try:
         data = {
             'song': currently_playing['item']['name'],
             'artist': currently_playing['item']['artists'][0]['name'],
             'img_url': currently_playing['item']['album']['images'][0]['url'],
-            'is_playing': currently_playing['is_playing']  # True or False
+            'is_playing': currently_playing['is_playing'],  # True or False
+            'song_uri': currently_playing['item']['uri']
         }
 
         return data
 
-    # else:
     except TypeError:
         return False
 
@@ -229,7 +236,6 @@ def start_current_track(sp):
     try:
         sp.start_playback(position_ms=0)
         return True
-
     except spotipy.exceptions.SpotifyException as e:
         """
             Error 404: No active device found
@@ -237,7 +243,7 @@ def start_current_track(sp):
         """
         return e.http_status
 
-    # TODO: need to handle HTTP Error for PUT to https://api.spotify.com/v1/me/player/play with Params: {} returned 403 due to Player command failed: Restriction violated in console
+    # TODO: need to handle: HTTP Error for PUT to https://api.spotify.com/v1/me/player/play with Params: {} returned 403 due to Player command failed: Restriction violated in console
     # except Exception as errh:
     #     print("do I get here???")
         # print("Http Error:", errh.with_traceback(errh))
@@ -281,6 +287,7 @@ def control_volume(sp, volume_percent):
 
 
 # sp = authenticate()
+# get_currently_playing_song(sp=sp)
 # print(play_previous_track(sp=sp))
 # # start_current_track(sp=sp)
 # pprint(get_currently_playing_song(sp=sp))

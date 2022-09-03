@@ -335,6 +335,25 @@ class InfoTab(QWidget):
                                  "}")
         next_track.clicked.connect(self.skip_track)
         music_layout.addWidget(next_track)
+
+        add_track_to_queue = QPushButton(
+            QIcon("icons/add_track_to_queue.svg"), "", self)
+        add_track_to_queue.setMinimumSize(75, 75)
+        add_track_to_queue.setToolTip("Add current song to queue")
+        add_track_to_queue.setStyleSheet("QPushButton{"
+                                         "background: transparent; border-style: outset;"
+                                         "border-radius: 37; border: 2px solid white; "
+                                         "}"
+                                         "QPushButton::hover{"
+                                         f"background-color: {LIGHT_BLUE};"
+                                         "}"
+                                         "QToolTip{"
+                                         f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                         f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                         "}")
+        add_track_to_queue.clicked.connect(
+            self.add_track_queue)  # add current song to queue
+        music_layout.addWidget(add_track_to_queue)
         main_info_layout.addLayout(music_layout, 3, 0, Qt.AlignLeft)
 
         volume_control_layout = QHBoxLayout()
@@ -432,6 +451,14 @@ class InfoTab(QWidget):
             pass
         else:
             self.call_no_active_device_found_error()
+
+    def add_track_queue(self):
+        curr_song_data = get_currently_playing_song(sp=sp)
+        curr_song_uri = curr_song_data['song_uri']
+        add_track_to_queue(song_uri=curr_song_uri, sp=sp)
+        # TODO: need to handle: curr_song_uri = curr_song_data['song_uri']
+        # TypeError: 'bool' object is not subscriptable
+        # currently only working, when device is active
 
     def change_value(self, value):
         '''
