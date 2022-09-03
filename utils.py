@@ -185,27 +185,38 @@ def get_currently_playing_song(sp):
         return False
 
 
-def play_next_track(sp):
-    """
-        This function skips to the next track.
-        A Device should be active and open spotify
-    """
-    # sp.next_track()
-    try:
-        sp.next_track()
-        return True
-    except Exception:
-        return False
-
-
-def play_previous_track(sp):
+def play_previous_track(sp):  # skip back to prevoius song
     """
         This function skips to the previous track.
         A Device should be active and open spotify
     """
     try:
+        """ Skip back was successfull """
         sp.previous_track()
         return True
+    except Exception:
+        """ unkown error """
+        return False
+
+    # except spotipy.exceptions.SpotifyException as e:
+    #     """ Error 404: No active device found """
+    #     return e.http_status  # int
+
+
+def pause_current_track(sp):
+    """
+        This function pauses track.
+        A Device should be active and open spotify
+    """
+    try:
+        sp.pause_playback()
+        return True
+    except spotipy.exceptions.SpotifyException as e:
+        """
+            Error 404: No active device found
+            Error 403: Device is currently active and a track is already playing
+        """
+        return e.http_status
     except Exception:
         return False
 
@@ -224,7 +235,6 @@ def start_current_track(sp):
             Error 404: No active device found
             Error 403: Device is currently active and a track is already playing
         """
-        # print(e.http_status)
         return e.http_status
 
     # TODO: need to handle HTTP Error for PUT to https://api.spotify.com/v1/me/player/play with Params: {} returned 403 due to Player command failed: Restriction violated in console
@@ -233,13 +243,13 @@ def start_current_track(sp):
         # print("Http Error:", errh.with_traceback(errh))
 
 
-def pause_current_track(sp):
+def play_next_track(sp):  # skip to next song
     """
-        This function pauses track.
+        This function skips to the next track.
         A Device should be active and open spotify
     """
     try:
-        sp.pause_playback()
+        sp.next_track()
         return True
     except Exception:
         return False
@@ -271,11 +281,11 @@ def control_volume(sp, volume_percent):
 
 
 # sp = authenticate()
-# start_current_track(sp=sp)
+# print(play_previous_track(sp=sp))
+# # start_current_track(sp=sp)
 # pprint(get_currently_playing_song(sp=sp))
 # start_current_track(sp=sp)
 # pause_current_track(sp=sp)
-# play_previous_track(sp=sp)
 # pprint(get_current_user(sp=sp))
 """
 # sp = authenticate()

@@ -24,6 +24,7 @@ WIN_WIDTH, WIN_HEIGHT = 1900, 1000  # default window geometry
 TASKBAR_HEIGHT = 40
 SPOTIFY_GREEN = "#1DB954"
 SPOTIFY_BLUE = "#10267D"
+LIGHT_BLUE = "#486682"
 WHITE = "#FFFFFF"
 BLACK = "#000000"
 GREY = "#6B6A69"
@@ -261,38 +262,7 @@ class InfoTab(QWidget):
         main_info_layout.addLayout(
             currently_playing_layout, 2, 0, Qt.AlignLeft)
 
-        ''' Logout Button '''
-        logout = QPushButton(QIcon("icons/log-out.svg"), "\tLog out", self)
-        logout.setFont(QFont("comicsans", 15))
-        logout.setMinimumSize(250, 50)
-        logout.setToolTip("Log-out")  # hover_message
-        # TODO: change Size
-
-        logout.setStyleSheet("QPushButton{"
-                             f"background: {BLACK}; border-style: outset; border-width: 3px;"
-                             "border-radius: 10px; border-color: white; color: white;"
-                             "padding: 6px;"  # min-width: 50px;
-                             "}"
-                             "QPushButton::hover{"
-                             f"background-color: {SPOTIFY_GREEN};"
-                             "}"
-                             "QToolTip{"
-                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                             "}")
-        # TODO: logout.clicked.connect(self.spotify_logout)
-        main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
-
-        # creating Button to link to the Tabs
-        # top_songs_button = QPushButton("Yout top Songs of all time", self)
-        # top_artists_button = QPushButton("Yout top Artists of all time", self)
-
-        # main_layout.addWidget(buttons_for_tabs, 2, 0, Qt.AlignTop) # can't add Buttongroup, because it's no Widget
-        # info_layout.addWidget(top_songs_button, 2, 0, Qt.AlignTop)
-        # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
-
         ''' Controll over songs area '''
-        # TODO: Put this part in the if else statement
         music_layout = QHBoxLayout()
 
         previous_track = QPushButton(
@@ -304,10 +274,14 @@ class InfoTab(QWidget):
                                      "background: transparent; border-style: outset;"
                                      "border-radius: 50; border : 4px solid white; "
                                      "}"
+                                     "QPushButton::hover{"
+                                     f"background-color: {LIGHT_BLUE};"
+                                     "}"
                                      "QToolTip{"
                                      f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
                                      f"border-radius: 5px; opacity: 200; color: {WHITE}"
                                      "}")
+        previous_track.clicked.connect(self.skip_back)
         music_layout.addWidget(previous_track)
 
         pause = QPushButton(QIcon("icons/pause.svg"), "", self)
@@ -317,10 +291,14 @@ class InfoTab(QWidget):
                             "background: transparent; border-style: outset;"
                             "border-radius: 50; border : 4px solid white; "
                             "}"
+                            "QPushButton::hover{"
+                            f"background-color: {LIGHT_BLUE};"
+                            "}"
                             "QToolTip{"
                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
                             "}")
+        pause.clicked.connect(self.pause_track)
         music_layout.addWidget(pause)
 
         play = QPushButton(QIcon("icons/play.svg"), "", self)
@@ -330,12 +308,14 @@ class InfoTab(QWidget):
                            "background: transparent; border-style: outset;"
                            "border-radius: 50; border : 4px solid white; "
                            "}"
+                           "QPushButton::hover{"
+                           f"background-color: {LIGHT_BLUE};"
+                           "}"
                            "QToolTip{"
                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
                            "}")
         play.clicked.connect(self.play_track)
-
         music_layout.addWidget(play)
 
         next_track = QPushButton(
@@ -345,6 +325,9 @@ class InfoTab(QWidget):
         next_track.setStyleSheet("QPushButton{"
                                  "background: transparent; border-style: outset;"
                                  "border-radius: 50; border : 4px solid white; "
+                                 "}"
+                                 "QPushButton::hover{"
+                                 f"background-color: {LIGHT_BLUE};"
                                  "}"
                                  "QToolTip{"
                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
@@ -372,52 +355,83 @@ class InfoTab(QWidget):
                 border-radius: 3px;
             }
                                     """)
-
         volume_slider.valueChanged.connect(self.change_value)
-
         volume_control_layout.addWidget(volume_slider)
         main_info_layout.addLayout(volume_control_layout, 4, 0, Qt.AlignLeft)
 
+        # creating Button to link to the Tabs
+        # top_songs_button = QPushButton("Yout top Songs of all time", self)
+        # top_artists_button = QPushButton("Yout top Artists of all time", self)
+
+        # main_layout.addWidget(buttons_for_tabs, 2, 0, Qt.AlignTop) # can't add Buttongroup, because it's no Widget
+        # info_layout.addWidget(top_songs_button, 2, 0, Qt.AlignTop)
+        # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
+
+        ''' Logout Button '''
+        logout = QPushButton(QIcon("icons/log-out.svg"), "\tLog out", self)
+        logout.setFont(QFont("comicsans", 15))
+        logout.setMinimumSize(250, 50)
+        logout.setToolTip("Log-out")  # hover_message
+        # TODO: change Size
+        logout.setStyleSheet("QPushButton{"
+                             f"background: {BLACK}; border-style: outset; border-width: 3px;"
+                             "border-radius: 10px; border-color: white; color: white;"
+                             "padding: 6px;"  # min-width: 50px;
+                             "}"
+                             "QPushButton::hover{"
+                             f"background-color: {SPOTIFY_GREEN};"
+                             "}"
+                             "QToolTip{"
+                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                             "}")
+        # TODO: logout.clicked.connect(self.spotify_logout)
+        main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
+
         self.setLayout(main_info_layout)
 
-    def play_track(self):
-        if start_current_track(sp=sp):
-            # everything is fine: connected to a device and not currently playing
+    def skip_back(self):  # previous_track
+        # response = play_previous_track(sp=sp)  # True, 404, False
+        if play_previous_track(sp=sp):
             pass
-        elif start_current_track(sp=sp) == 403:
+        else:  # Es ist soo schlecht. GHiewr gehts mit dem Fester nicht ???!?? WTF is goinjkg on???? kskdnaskfn ksldfiuosed hfkljdsfg sfdg fsdg bsd ghosdrhg foisudrhg
+            self.call_no_active_device_found_error()
+
+        """if respone:
+            # everything is fine: connected to a akip was successfull
+            pass
+        elif respone == 404:
+            self.call_no_active_device_found_error()
+        else:
+            self.call_unkown_error_found()"""
+
+    def pause_track(self):
+        if pause_current_track(sp=sp):
+            pass
+        elif pause_current_track(sp=sp) == 403:
             # Error 404: A track is already playing
             # go on, nothing should happen
             pass
-        elif start_current_track(sp=sp) == 404:
-            error_msg = QMessageBox()
-            error_msg.setIcon(QMessageBox.Critical)
-            error_msg.setText(
-                "Could not skip, because no Device is currently active!")
-            error_msg.setInformativeText(
-                "We couldn not connect to your device, because there is no one active at the moment\nmake sure you have turend a device on!")
-            error_msg.setWindowTitle("Conection Error")
-            error_msg.exec_()
+        elif pause_current_track(sp=sp) == 404:
+            self.call_no_active_device_found_error()
         else:
-            error_msg = QMessageBox()
-            error_msg.setIcon(QMessageBox.Critical)
-            error_msg.setText("Unkown error accoured")
-            error_msg.setInformativeText(
-                "An undefined and unkown error accoured.\n Please try later again!")
-            error_msg.setWindowTitle("Unkown Error")
-            error_msg.exec_()
+            self.call_unkown_error_found()
 
-    def skip_track(self):
+    def play_track(self):
+        if start_current_track(sp=sp):
+            pass
+        elif start_current_track(sp=sp) == 403:
+            pass
+        elif start_current_track(sp=sp) == 404:
+            self.call_no_active_device_found_error()
+        else:
+            self.call_unkown_error_found()
+
+    def skip_track(self):  # next track
         if play_next_track(sp=sp):
             pass
         else:
-            error_msg = QMessageBox()
-            error_msg.setIcon(QMessageBox.Critical)
-            error_msg.setText(
-                "Could not skip, because no Device is currently active!")
-            error_msg.setInformativeText(
-                "We couldn not connect to your device, because there is no one active at the moment\nmake sure you have turend a device on!")
-            error_msg.setWindowTitle("Conection Error")
-            error_msg.exec_()
+            self.call_no_active_device_found_error()
 
     def change_value(self, value):
         '''
@@ -434,6 +448,24 @@ class InfoTab(QWidget):
     def spotify_logout(self):
         if os.path.exists(".cache"):
             os.remove(".cache")
+
+    def call_no_active_device_found_error(self):
+        error_msg = QMessageBox()
+        error_msg.setIcon(QMessageBox.Critical)
+        error_msg.setWindowTitle("Conection Error")
+        error_msg.setText("No active device found!")
+        error_msg.setInformativeText(
+            "We couldn not connect to your device, because there is no one active at the moment\nMake sure you have turend a device on!")
+        error_msg.exec_()
+
+    def call_unkown_error_found(self):
+        error_msg = QMessageBox()
+        error_msg.setIcon(QMessageBox.Critical)
+        error_msg.setWindowTitle("Unkown Error")
+        error_msg.setText("Unkown error accoured")
+        error_msg.setInformativeText(
+            "An undefined and unkown error accoured.\n Please try later again!")
+        error_msg.exec_()
 
 
 class MainWindow(QMainWindow):
