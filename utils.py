@@ -155,7 +155,7 @@ def get_tracks_from_favoritesongs(sp):
     return data  # dict()
 
 
-def add_track_to_queue(song_uri, sp):
+def add_track_to_queue(sp, song_uri):
     '''
         This function adds a song to the queue of the user
         params:
@@ -174,6 +174,17 @@ def add_track_to_queue(song_uri, sp):
         return False
 
 
+def add_track_to_fav_songs(sp, track_uri=[]):
+    """
+        This function adds a song to the favoritue library of the user
+        params:
+            - sp: Spotify (object)
+            - track_uri (lst): needds to be a list of track URIs, URLs or IDs 
+    """
+    # could add list of uri's as well
+    sp.current_user_saved_tracks_add(tracks=track_uri)
+
+
 def get_currently_playing_song(sp):
     currently_playing = sp.current_user_playing_track()
 
@@ -190,6 +201,24 @@ def get_currently_playing_song(sp):
 
     except TypeError:
         return False
+
+
+def set_shuffle_mode(sp, status=False):
+    """
+        This function sets the state in shufflemode.
+        A Device should be active and open spotify
+        params:
+            - status: Wheter Shuffle mode is on or not (True or False)
+    """
+    sp.shuffle(state=status)  # state: Shuffle Mode on or not "true" or "false"
+
+
+def set_repeat_mode(sp):
+    """
+        This function sets the state in repeatmode.
+        A Device should be active and open spotify
+    """
+    sp.repeat(state="track")
 
 
 def play_previous_track(sp):  # skip back to prevoius song
@@ -261,22 +290,6 @@ def play_next_track(sp):  # skip to next song
         return False
 
 
-def set_repeat_mode(sp):
-    """
-        This function sets the state in repeatmode.
-        A Device should be active and open spotify
-    """
-    sp.repeat(state="track")
-
-
-def set_shuffle_mode(sp):
-    """
-        This function sets the state in shufflemode.
-        A Device should be active and open spotify
-    """
-    sp.shuffle(state=True)  # "true"
-
-
 def control_volume(sp, volume_percent):
     """
         This function sets the volume to the given percentage value
@@ -287,29 +300,4 @@ def control_volume(sp, volume_percent):
 
 
 # sp = authenticate()
-# get_currently_playing_song(sp=sp)
-# print(play_previous_track(sp=sp))
-# # start_current_track(sp=sp)
-# pprint(get_currently_playing_song(sp=sp))
-# start_current_track(sp=sp)
-# pause_current_track(sp=sp)
-# pprint(get_current_user(sp=sp))
-"""
-# sp = authenticate()
-# track_played_min(sp=sp, song_id="50eJOxJiGmJ7PBZaTKpje1")
-# pprint(get_all_top_tracks(sp=sp))
-# 
-# profile_url = get_current_user(sp=sp)['profile_img']
-# response = requests.get(url=profile_url)
-# profile_img = Image.open(BytesIO(response.content))
-# data = get_all_top_tracks(sp=sp)
-
-# for song_index in range(len(data['songs'])):
-#     pprint(data['songs'][song_index])
-
-# for song in data['songs']:
-#     pprint(song)
-
-# pprint(data.keys())
-# get_all_top_tracks(sp=sp)
-"""
+# set_repeat_mode(sp=sp)

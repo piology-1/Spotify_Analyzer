@@ -1,4 +1,6 @@
+from gzip import READ
 from turtle import title
+from xml.etree.ElementTree import PI
 from utils import *
 from authentication import authenticate
 import requests
@@ -25,6 +27,8 @@ TASKBAR_HEIGHT = 40
 SPOTIFY_GREEN = "#1DB954"
 SPOTIFY_BLUE = "#10267D"
 LIGHT_BLUE = "#486682"
+LIGHT_RED = "#BA303A"
+LIGHT_GREY = "#7F8285"
 WHITE = "#FFFFFF"
 BLACK = "#000000"
 GREY = "#6B6A69"
@@ -257,13 +261,63 @@ class InfoTab(QWidget):
             img_label.setPixmap(QPixmap(current_song_image_resized))
             img_label.setStyleSheet("background: transparent")
             currently_playing_layout.addWidget(img_label)
-
         # TODO: How can I update this, when the Application is already open and the user starts listen to a song?
+
         main_info_layout.addLayout(
             currently_playing_layout, 2, 0, Qt.AlignLeft)
-
         ''' Controll over songs area '''
         music_layout = QHBoxLayout()
+
+        self.suffle_status = False  # True: on, False: off
+        self.repeat_status = False  # True: on, False: off
+
+        shuffle = QPushButton(QIcon("icons/shuffle.svg"), "", self)
+        shuffle.setMinimumSize(75, 75)
+        shuffle.setToolTip("Shuffle Mode")
+        if not self.suffle_status:
+            shuffle.setStyleSheet("QPushButton{"
+                                  "background: transparent; border-style: outset;"
+                                  "border-radius: 37; border: 2px solid white;"
+                                  "}"
+                                  "QPushButton::hover{"
+                                  f"background-color: {LIGHT_BLUE};"
+                                  "}"
+                                  "QToolTip{"
+                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                  f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                  "}")
+        else:
+            shuffle.setStyleSheet("QPushButton{"
+                                  "background-color: #041a10; border-style: outset;"
+                                  "border-radius: 37; border: 2px solid white;"
+                                  "}"
+                                  "QPushButton::hover{"
+                                  f"background-color: #041a10;"
+                                  "}"
+                                  "QToolTip{"
+                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                  f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                  "}")
+        shuffle.clicked.connect(self.toggle_shuffle_status)
+        music_layout.addWidget(shuffle)
+
+        repeat = QPushButton(QIcon("icons/repeat.svg"), "", self)
+        repeat.setMinimumSize(75, 75)
+        repeat.setToolTip("Repeat Mode")
+        # TODO: if repeat on, then ... and so on
+        repeat.setStyleSheet("QPushButton{"
+                             "background: transparent; border-style: outset;"
+                             "border-radius: 37; border: 2px solid white; "
+                             "}"
+                             "QPushButton::hover{"
+                             f"background-color: {LIGHT_BLUE};"
+                             "}"
+                             "QToolTip{"
+                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                             "}")
+        # repeat.clicked.connect(self.toggle_repeat_status)
+        music_layout.addWidget(repeat)
 
         previous_track = QPushButton(
             QIcon("icons/skip-back.svg"), "", self)
@@ -336,6 +390,42 @@ class InfoTab(QWidget):
         next_track.clicked.connect(self.skip_track)
         music_layout.addWidget(next_track)
 
+        add_track_to_favs = QPushButton(QIcon("icons/heart.svg"), "", self)
+        add_track_to_favs.setMinimumSize(75, 75)
+        fav_songs_data = get_tracks_from_favoritesongs(sp=sp)
+        fav_songs_uris = fav_songs_data['uri']  # list
+        curr_song_uri = self.get_curr_song_uri()
+        if curr_song_uri not in fav_songs_uris:
+            add_track_to_favs.setToolTip("Add current song to Fav's")
+            add_track_to_favs.setStyleSheet("QPushButton{"
+                                            "background: transparent; border-style: outset;"
+                                            "border-radius: 37; border: 2px solid white; "
+                                            "}"
+                                            "QPushButton::hover{"
+                                            f"background-color: {LIGHT_BLUE};"
+                                            "}"
+                                            "QToolTip{"
+                                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                            "}")
+        else:
+            add_track_to_favs.setToolTip("Already in your Fav Library")
+            add_track_to_favs.setStyleSheet("QPushButton{"
+                                            # is allready in favs
+                                            f"background-color: {LIGHT_RED}; border-style: outset;"
+                                            "border-radius: 37; border: 2px solid white; "
+                                            "}"
+                                            "QPushButton::hover{"
+                                            f"background-color: {LIGHT_RED};"
+                                            "}"
+                                            "QToolTip{"
+                                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
+                                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
+                                            "}")
+        # add current song to fav library
+        add_track_to_favs.clicked.connect(self.add_curr_track_to_fav_library)
+        music_layout.addWidget(add_track_to_favs)
+
         add_track_to_queue = QPushButton(
             QIcon("icons/add_track_to_queue.svg"), "", self)
         add_track_to_queue.setMinimumSize(75, 75)
@@ -352,29 +442,75 @@ class InfoTab(QWidget):
                                          f"border-radius: 5px; opacity: 200; color: {WHITE}"
                                          "}")
         add_track_to_queue.clicked.connect(
-            self.add_track_queue)  # add current song to queue
+            self.add_curr_track_to_queue)  # add current song to queue
         music_layout.addWidget(add_track_to_queue)
         main_info_layout.addLayout(music_layout, 3, 0, Qt.AlignLeft)
 
         volume_control_layout = QHBoxLayout()
         volume_slider = QSlider(Qt.Orientation.Horizontal, self)
         volume_slider.setMaximumSize(400, 20)
-        volume_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                border: 1px solid #999999;
-                height: 8px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
-                margin: 2px 0;
-            }
-            QSlider::handle:horizontal {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-                border: 1px solid #5c5c5c;
-                width: 18px;
-                margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
-                border-radius: 3px;
-            }
-                                    """)
-        volume_slider.valueChanged.connect(self.change_value)
+        height = 4
+        volume_slider.setStyleSheet(f'''
+        QSlider {{
+            margin-top: {height+1}px;
+            margin-bottom: {height+1}px;
+            background: transparent;
+        }}
+        QSlider::groove:horizontal {{
+            height: {height}px;
+            background: {SPOTIFY_GREEN};
+            margin: {height // 4}px 0;
+        }}
+        QSlider::handle:horizontal {{
+            background: {WHITE};
+            border: {height} solid {WHITE};
+            width: {height * 3};
+            margin: {height * 2 * -1} 0;
+            border-radius: {height * 2 + height // 2}px;
+        }}
+        QSlider::add-page:horizontal {{
+            background: {GREY};
+            height: {height}px;
+            margin: {height // 4}px 0;
+        }}
+        ''')
+        # volume_slider.setStyleSheet(
+        #     f'''
+        #     QSlider {{
+        #         margin-top: {height+1}px;
+        #         margin-bottom: {height+1}px;
+        #         background: transparent;
+        #     }}
+        #     QSlider::groove:horizontal {{
+        #         border: {GREY};
+        #         height: {height}px;
+        #         background: {WHITE};
+        #         margin: {height // 4}px 0;
+        #     }}
+        #     QSlider::handle:horizontal {{
+        #         background: transparent;
+        #     }}
+        #     QSlider::handle:horizontal:hover {{
+        #         background: {WHITE};
+        #         border: {height}px solid {WHITE};
+        #         width: {height * 3};
+        #         margin: {height * 2 * -1} 0;
+        #         border-radius: {height * 2 + height // 2}px;
+
+        #     }}
+        #     QSlider::add-page:horizontal {{
+        #         background: {LIGHT_GREY};
+        #         height: {height*2}px;
+        #         margin: {height // 4}px 0;
+        #         border-radius: {height * 2 + height // 2}px;
+        #     }}
+        #     QSlider::groove:horizontal:hover {{
+        #         background: {SPOTIFY_GREEN};
+        #         height: {height}px;
+        #         margin: {height // 4}px 0;
+        #     }}
+        #     ''')
+        # volume_slider.valueChanged.connect(self.change_value)
         volume_control_layout.addWidget(volume_slider)
         main_info_layout.addLayout(volume_control_layout, 4, 0, Qt.AlignLeft)
 
@@ -408,6 +544,23 @@ class InfoTab(QWidget):
         main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
 
         self.setLayout(main_info_layout)
+
+    def toggle_shuffle_status(self):
+        # toggle self.suffle_status
+        if self.suffle_status:
+            self.suffle_status = False
+        else:
+            self.suffle_status = True
+
+        set_shuffle_mode(sp=sp, status=self.suffle_status)  # default: False
+
+    def toggle_repeat_status(self):
+        if self.repeat_status:
+            self.repeat_status = False
+        else:
+            self.repeat_status = True
+
+        # set_repeat_mode(sp=sp, status=self.repeat_status)
 
     def skip_back(self):  # previous_track
         # response = play_previous_track(sp=sp)  # True, 404, False
@@ -452,13 +605,20 @@ class InfoTab(QWidget):
         else:
             self.call_no_active_device_found_error()
 
-    def add_track_queue(self):
+    def get_curr_song_uri(self):
         curr_song_data = get_currently_playing_song(sp=sp)
-        curr_song_uri = curr_song_data['song_uri']
-        add_track_to_queue(song_uri=curr_song_uri, sp=sp)
+        return curr_song_data['song_uri']
+
+    def add_curr_track_to_queue(self):
+        curr_song_uri = self.get_curr_song_uri()
+        add_track_to_queue(sp=sp, song_uri=curr_song_uri)
         # TODO: need to handle: curr_song_uri = curr_song_data['song_uri']
         # TypeError: 'bool' object is not subscriptable
         # currently only working, when device is active
+
+    def add_curr_track_to_fav_library(self):  # song_uri=get_curr_song_uri
+        curr_song_uri = self.get_curr_song_uri()
+        add_track_to_fav_songs(sp=sp, track_uri=[curr_song_uri])
 
     def change_value(self, value):
         '''
