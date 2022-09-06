@@ -38,6 +38,85 @@ PINK = "#611038"
 sp = authenticate()
 
 
+class SavedFavSongs(QWidget):
+    """
+        This class handels all the Widgets, Data and Information regarding the favorite
+        Artists of the User
+    """
+
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+
+        data = get_tracks_from_favoritesongs(sp=sp)
+        rows = len(data['songs'])*2  # songname AND Artist name per track
+        pic_width, pic_height = 150, 150  # px
+
+        song_layout = QGridLayout(self)
+
+        title = QLabel("Your saved favorite songs\n", self)
+        title.setFont(QFont("Helvetica", 35))
+        title.setStyleSheet(
+            "font-weight: bold; background: transparent")
+        song_layout.addWidget(title, 0, 0, 1, 2, Qt.AlignCenter)
+
+        song_index = 0
+        artist_index = 0
+        for index in range(2, rows+2, 1):
+            if index % 2 == 0:  # even rows
+
+                """ Visualize top Tracks """
+                curr_track = str(data['songs'][song_index])
+                track_Label = QLabel(f"{song_index + 1}. {curr_track}", self)
+                # track_Label.setMaximumSize()
+                track_Label.setWordWrap(True)
+                track_Label.setFont(QFont("Helvetica", 25))
+                track_Label.setStyleSheet(
+                    "font-weight: bold; background: transparent")
+
+                # """ Visualize top Tracks duration"""
+                # curr_track_id = str(data['song_id'][song_index])
+                # duration = track_played_min(
+                #     sp=sp, song_id=curr_track_id)  # [min]
+                # track_duration_Label = QLabel(
+                #     f"Your listened to this song for {duration} minutes", self)
+                # track_duration_Label.setFont(QFont("Helvetica", 20))
+                # track_duration_Label.setStyleSheet("background: transparent")
+                # song_layout.addWidget(
+                #     track_duration_Label, index, 1, Qt.AlignLeft)
+                # TODO: Problem is in utils.py track_played_min(sp=sp, song_id=curr_track_id) -> NOT returning in minutes???!!!
+
+                """ Visualize pictures """
+                pic_url = data['img_url'][song_index]
+                picture = QImage()
+                # it comes with size(640, 640)
+                picture.loadFromData(requests.get(url=pic_url).content)
+                picture_resized = picture.scaled(pic_width, pic_height)
+                image_label = QLabel(self)
+                image_label.setPixmap(QPixmap(picture_resized))
+                image_label.setStyleSheet("background: transparent")
+
+                # SONG LEFT, PICTURE RIGHT
+                song_layout.addWidget(track_Label, index, 0, Qt.AlignLeft)
+                song_layout.addWidget(image_label, index,
+                                      1, 2, 1, Qt.AlignCenter)
+
+                song_index += 1
+            else:  # uneven rows
+                """ Visualize top Tracks artists """
+                artist = str(data['artists'][artist_index])
+
+                artist_Label = QLabel(f"\t{artist}", self)
+                artist_Label.setFont(QFont("Helvetica", 15))
+                artist_Label.setStyleSheet("background: transparent")
+
+                # ARTIST LEFT, PICTURE RIGHT
+                song_layout.addWidget(artist_Label, index, 0, Qt.AlignLeft)
+
+                artist_index += 1
+
+        self.setLayout(song_layout)
+
+
 class TopArtistsTab(QWidget):
     """
         This class handels all the Widgets, Data and Information regarding the favorite
@@ -134,6 +213,7 @@ class TopSongsTab(QWidget):
                 """ Visualize top Tracks """
                 curr_track = str(data['songs'][song_index])
                 track_Label = QLabel(f"{song_index + 1}. {curr_track}", self)
+                track_Label.setWordWrap(True)
                 track_Label.setFont(QFont("Helvetica", 25))
                 track_Label.setStyleSheet(
                     "font-weight: bold; background: transparent")
@@ -275,29 +355,29 @@ class InfoTab(QWidget):
         shuffle.setMinimumSize(75, 75)
         shuffle.setToolTip("Shuffle Mode")
         if not self.suffle_status:
-            shuffle.setStyleSheet("QPushButton{"
-                                  "background: transparent; border-style: outset;"
-                                  "border-radius: 37; border: 2px solid white;"
-                                  "}"
-                                  "QPushButton::hover{"
-                                  f"background-color: {LIGHT_BLUE};"
-                                  "}"
-                                  "QToolTip{"
-                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                  f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                  "}")
+            shuffle.setStyleSheet(f"""QPushButton{{
+                                  background: transparent; border-style: outset;
+                                  border-radius: 37; border: 2px solid white;
+                                  }}
+                                  QPushButton::hover{{
+                                  background-color: {LIGHT_BLUE};
+                                  }}
+                                  QToolTip{{
+                                  border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                  border-radius: 5px; opacity: 200; color: {WHITE}
+                                  }}""")
         else:
-            shuffle.setStyleSheet("QPushButton{"
-                                  "background-color: #041a10; border-style: outset;"
-                                  "border-radius: 37; border: 2px solid white;"
-                                  "}"
-                                  "QPushButton::hover{"
-                                  f"background-color: #041a10;"
-                                  "}"
-                                  "QToolTip{"
-                                  f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                  f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                  "}")
+            shuffle.setStyleSheet(f"""QPushButton{{
+                                  background-color: #041a10; border-style: outset;
+                                  border-radius: 37; border: 2px solid white;
+                                  }}
+                                  QPushButton::hover{{
+                                  background-color: #041a10;
+                                  }}
+                                  QToolTip{{
+                                  border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                  border-radius: 5px; opacity: 200; color: {WHITE};
+                                  }}""")
         shuffle.clicked.connect(self.toggle_shuffle_status)
         music_layout.addWidget(shuffle)
 
@@ -305,17 +385,17 @@ class InfoTab(QWidget):
         repeat.setMinimumSize(75, 75)
         repeat.setToolTip("Repeat Mode")
         # TODO: if repeat on, then ... and so on
-        repeat.setStyleSheet("QPushButton{"
-                             "background: transparent; border-style: outset;"
-                             "border-radius: 37; border: 2px solid white; "
-                             "}"
-                             "QPushButton::hover{"
-                             f"background-color: {LIGHT_BLUE};"
-                             "}"
-                             "QToolTip{"
-                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                             "}")
+        repeat.setStyleSheet(f"""QPushButton{{
+                             background: transparent; border-style: outset;
+                             border-radius: 37; border: 2px solid white;
+                             }}
+                             QPushButton::hover{{
+                             background-color: {LIGHT_BLUE};
+                             }}
+                             QToolTip{{
+                             border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                             border-radius: 5px; opacity: 200; color: {WHITE};
+                             }}""")
         # repeat.clicked.connect(self.toggle_repeat_status)
         music_layout.addWidget(repeat)
 
@@ -324,51 +404,51 @@ class InfoTab(QWidget):
         previous_track.setMinimumSize(100, 100)
         previous_track.setToolTip("Skip Back")
         # setting radius and border
-        previous_track.setStyleSheet("QPushButton{"
-                                     "background: transparent; border-style: outset;"
-                                     "border-radius: 50; border : 4px solid white; "
-                                     "}"
-                                     "QPushButton::hover{"
-                                     f"background-color: {LIGHT_BLUE};"
-                                     "}"
-                                     "QToolTip{"
-                                     f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                     f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                     "}")
+        previous_track.setStyleSheet(f"""QPushButton{{
+                                     background: transparent; border-style: outset;
+                                     border-radius: 50; border : 4px solid white;
+                                     }}
+                                     QPushButton::hover{{
+                                     background-color: {LIGHT_BLUE};
+                                     }}
+                                     QToolTip{{
+                                     border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                     border-radius: 5px; opacity: 200; color: {WHITE}
+                                     }}""")
         previous_track.clicked.connect(self.skip_back)
         music_layout.addWidget(previous_track)
 
         pause = QPushButton(QIcon("icons/pause.svg"), "", self)
         pause.setMinimumSize(100, 100)
         pause.setToolTip("Pause Track")
-        pause.setStyleSheet("QPushButton{"
-                            "background: transparent; border-style: outset;"
-                            "border-radius: 50; border : 4px solid white; "
-                            "}"
-                            "QPushButton::hover{"
-                            f"background-color: {LIGHT_BLUE};"
-                            "}"
-                            "QToolTip{"
-                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                            "}")
+        pause.setStyleSheet(f"""QPushButton{{
+                            background: transparent; border-style: outset;
+                            border-radius: 50; border : 4px solid white;
+                            }}
+                            QPushButton::hover{{
+                            background-color: {LIGHT_BLUE};
+                            }}
+                            QToolTip{{
+                            border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                            border-radius: 5px; opacity: 200; color: {WHITE};
+                            }}""")
         pause.clicked.connect(self.pause_track)
         music_layout.addWidget(pause)
 
         play = QPushButton(QIcon("icons/play.svg"), "", self)
         play.setMinimumSize(100, 100)
         play.setToolTip("Play Track")
-        play.setStyleSheet("QPushButton{"
-                           "background: transparent; border-style: outset;"
-                           "border-radius: 50; border : 4px solid white; "
-                           "}"
-                           "QPushButton::hover{"
-                           f"background-color: {LIGHT_BLUE};"
-                           "}"
-                           "QToolTip{"
-                           f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                           f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                           "}")
+        play.setStyleSheet(f"""QPushButton{{
+                           background: transparent; border-style: outset;
+                           border-radius: 50; border : 4px solid white;
+                           }}
+                           QPushButton::hover{{
+                           background-color: {LIGHT_BLUE};
+                           }}
+                           QToolTip{{
+                           border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                           border-radius: 5px; opacity: 200; color: {WHITE};
+                           }}""")
         play.clicked.connect(self.play_track)
         music_layout.addWidget(play)
 
@@ -376,17 +456,17 @@ class InfoTab(QWidget):
             QIcon("icons/skip-forward.svg"), "", self)
         next_track.setMinimumSize(100, 100)
         next_track.setToolTip("Skip Forward")
-        next_track.setStyleSheet("QPushButton{"
-                                 "background: transparent; border-style: outset;"
-                                 "border-radius: 50; border : 4px solid white; "
-                                 "}"
-                                 "QPushButton::hover{"
-                                 f"background-color: {LIGHT_BLUE};"
-                                 "}"
-                                 "QToolTip{"
-                                 f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                 f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                 "}")
+        next_track.setStyleSheet(f"""QPushButton{{
+                                 background: transparent; border-style: outset;
+                                 border-radius: 50; border : 4px solid white;
+                                 }}
+                                 QPushButton::hover{{
+                                 background-color: {LIGHT_BLUE};
+                                 }}
+                                 QToolTip{{
+                                 border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                 border-radius: 5px; opacity: 200; color: {WHITE};
+                                 }}""")
         next_track.clicked.connect(self.skip_track)
         music_layout.addWidget(next_track)
 
@@ -397,31 +477,31 @@ class InfoTab(QWidget):
         curr_song_uri = self.get_curr_song_uri()
         if curr_song_uri not in fav_songs_uris:
             add_track_to_favs.setToolTip("Add current song to Fav's")
-            add_track_to_favs.setStyleSheet("QPushButton{"
-                                            "background: transparent; border-style: outset;"
-                                            "border-radius: 37; border: 2px solid white; "
-                                            "}"
-                                            "QPushButton::hover{"
-                                            f"background-color: {LIGHT_BLUE};"
-                                            "}"
-                                            "QToolTip{"
-                                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                            "}")
+            add_track_to_favs.setStyleSheet(f"""QPushButton{{
+                                            background: transparent; border-style: outset;
+                                            border-radius: 37; border: 2px solid white;
+                                            }}
+                                            QPushButton::hover{{
+                                            background-color: {LIGHT_BLUE};
+                                            }}
+                                            QToolTip{{
+                                            border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                            border-radius: 5px; opacity: 200; color: {WHITE};
+                                            }}""")
         else:
             add_track_to_favs.setToolTip("Already in your Fav Library")
-            add_track_to_favs.setStyleSheet("QPushButton{"
-                                            # is allready in favs
-                                            f"background-color: {LIGHT_RED}; border-style: outset;"
-                                            "border-radius: 37; border: 2px solid white; "
-                                            "}"
-                                            "QPushButton::hover{"
-                                            f"background-color: {LIGHT_RED};"
-                                            "}"
-                                            "QToolTip{"
-                                            f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                            f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                            "}")
+            add_track_to_favs.setStyleSheet(  # is allready in favs
+                f"""QPushButton{{
+                                            background-color: {LIGHT_RED}; border-style: outset;
+                                            border-radius: 37; border: 2px solid white;
+                                            }}
+                                            QPushButton::hover{{
+                                            background-color: {LIGHT_RED};
+                                            }}
+                                            QToolTip{{
+                                            border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                            border-radius: 5px; opacity: 200; color: {WHITE};
+                                            }}""")
         # add current song to fav library
         add_track_to_favs.clicked.connect(self.add_curr_track_to_fav_library)
         music_layout.addWidget(add_track_to_favs)
@@ -430,17 +510,17 @@ class InfoTab(QWidget):
             QIcon("icons/add_track_to_queue.svg"), "", self)
         add_track_to_queue.setMinimumSize(75, 75)
         add_track_to_queue.setToolTip("Add current song to queue")
-        add_track_to_queue.setStyleSheet("QPushButton{"
-                                         "background: transparent; border-style: outset;"
-                                         "border-radius: 37; border: 2px solid white; "
-                                         "}"
-                                         "QPushButton::hover{"
-                                         f"background-color: {LIGHT_BLUE};"
-                                         "}"
-                                         "QToolTip{"
-                                         f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                         f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                         "}")
+        add_track_to_queue.setStyleSheet(f"""QPushButton{{
+                                         background: transparent; border-style: outset;
+                                         border-radius: 37; border: 2px solid white;
+                                         }}
+                                         QPushButton::hover{{
+                                         background-color: {LIGHT_BLUE};
+                                         }}
+                                         QToolTip{{
+                                         border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                                         border-radius: 5px; opacity: 200; color: {WHITE};
+                                         }}""")
         add_track_to_queue.clicked.connect(
             self.add_curr_track_to_queue)  # add current song to queue
         music_layout.addWidget(add_track_to_queue)
@@ -474,42 +554,6 @@ class InfoTab(QWidget):
             margin: {height // 4}px 0;
         }}
         ''')
-        # volume_slider.setStyleSheet(
-        #     f'''
-        #     QSlider {{
-        #         margin-top: {height+1}px;
-        #         margin-bottom: {height+1}px;
-        #         background: transparent;
-        #     }}
-        #     QSlider::groove:horizontal {{
-        #         border: {GREY};
-        #         height: {height}px;
-        #         background: {WHITE};
-        #         margin: {height // 4}px 0;
-        #     }}
-        #     QSlider::handle:horizontal {{
-        #         background: transparent;
-        #     }}
-        #     QSlider::handle:horizontal:hover {{
-        #         background: {WHITE};
-        #         border: {height}px solid {WHITE};
-        #         width: {height * 3};
-        #         margin: {height * 2 * -1} 0;
-        #         border-radius: {height * 2 + height // 2}px;
-
-        #     }}
-        #     QSlider::add-page:horizontal {{
-        #         background: {LIGHT_GREY};
-        #         height: {height*2}px;
-        #         margin: {height // 4}px 0;
-        #         border-radius: {height * 2 + height // 2}px;
-        #     }}
-        #     QSlider::groove:horizontal:hover {{
-        #         background: {SPOTIFY_GREEN};
-        #         height: {height}px;
-        #         margin: {height // 4}px 0;
-        #     }}
-        #     ''')
         # volume_slider.valueChanged.connect(self.change_value)
         volume_control_layout.addWidget(volume_slider)
         main_info_layout.addLayout(volume_control_layout, 4, 0, Qt.AlignLeft)
@@ -528,18 +572,18 @@ class InfoTab(QWidget):
         logout.setMinimumSize(250, 50)
         logout.setToolTip("Log-out")  # hover_message
         # TODO: change Size
-        logout.setStyleSheet("QPushButton{"
-                             f"background: {BLACK}; border-style: outset; border-width: 3px;"
-                             "border-radius: 10px; border-color: white; color: white;"
-                             "padding: 6px;"  # min-width: 50px;
-                             "}"
-                             "QPushButton::hover{"
-                             f"background-color: {SPOTIFY_GREEN};"
-                             "}"
-                             "QToolTip{"
-                             f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                             f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                             "}")
+        logout.setStyleSheet(f"""QPushButton{{
+                             background: {BLACK}; border-style: outset; border-width: 3px;
+                             border-radius: 10px; border-color: white; color: white;
+                             padding: 6px;
+                             }}
+                             QPushButton::hover{{
+                             background-color: {SPOTIFY_GREEN};
+                             }}
+                             QToolTip{{
+                             border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                             border-radius: 5px; opacity: 200; color: {WHITE};
+                             }}""")
         # TODO: logout.clicked.connect(self.spotify_logout)
         main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
 
@@ -682,23 +726,29 @@ class MainWindow(QMainWindow):
         tab_bar = self.tab_widget.tabBar()
 
         # creating an Area, where a Scroll bar is added, when the space isn't enough
-        songs_scrollbar = QScrollArea()
-        songs_scrollbar.setWidgetResizable(True)
+        top_songs_scrollbar = QScrollArea()
+        top_songs_scrollbar.setWidgetResizable(True)
         top_songs_tab = TopSongsTab(self)  # instance of TopSongsTab
         # setting the scrollbar to the Tab(s)
-        songs_scrollbar.setWidget(top_songs_tab)
+        top_songs_scrollbar.setWidget(top_songs_tab)
 
-        artist_scrollbar = QScrollArea()
-        artist_scrollbar.setWidgetResizable(True)
-        artist_scrollbar.setWidget(TopArtistsTab(self))
+        top_artist_scrollbar = QScrollArea()
+        top_artist_scrollbar.setWidgetResizable(True)
+        top_artist_scrollbar.setWidget(TopArtistsTab(self))
+
+        fav_songs_scrollbar = QScrollArea()
+        fav_songs_scrollbar.setWidgetResizable(True)
+        fav_songs_scrollbar.setWidget(SavedFavSongs(self))
 
         #  adding all Tabs to the TabWidget
         self.tab_widget.addTab(InfoTab(self), QIcon(
             "icons/info.svg"), "General Infos")
-        self.tab_widget.addTab(songs_scrollbar, QIcon(
+        self.tab_widget.addTab(top_songs_scrollbar, QIcon(
             "icons/top_tracks.svg"), "Your all Time Fav's")
-        self.tab_widget.addTab(artist_scrollbar, QIcon(
+        self.tab_widget.addTab(top_artist_scrollbar, QIcon(
             "icons/top_artists.svg"), "Your favorite Artists")
+        self.tab_widget.addTab(fav_songs_scrollbar, QIcon(
+            "icons/heart.svg"), "Your saved favorite Songs")
 
         self.tab_widget.setMovable(True)
         self.tab_widget.setTabsClosable(True)  # changed Icon below
@@ -712,51 +762,46 @@ class MainWindow(QMainWindow):
         tab_bar.setStyleSheet("background: transparent")
         curr_win_width, curr_win_height = self.width(), self.height()
         # styling the Tabs and the tabpage
-        self.tab_widget.setStyleSheet("QWidget{"
-                                      # making the page of the tabs green/black
-                                      # top lef and bottom right
-                                      "background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,"
-                                      # factors in % 1==completely width and height and so on
-                                      f"stop: 0 {SPOTIFY_GREEN}, stop: 1 {BLACK});"
-                                      "}"
-                                      "QTabWidget::tab-bar{"
-                                      "alignment: center;"
-                                      "}"
-                                      # The tab widget frame at the top
-                                      "QTabWidget::pane{"
-                                      f"border-top: 5px solid {WHITE};"
-                                      "position: absolute; top: -20px;"  # shifts the tabs in the border
-                                      "}"
-                                      # making the Tabs in the Tab Bar green
-                                      "QTabBar::tab {"
-                                      f"background:  {SPOTIFY_GREEN};"
-                                      # = border-bottom-color etc.
-                                      f"border: 2px solid {WHITE};"
-                                      "border-top-left-radius: 10px; border-top-right-radius: 10px;"
-                                      "padding: 8px;"
-                                      f"font: Arial; color: {WHITE};"
-                                      "}"
-                                      "QTabBar::tab:selected {"
-                                      f"background:  {SPOTIFY_BLUE};"
-                                      # same as the pane
-                                      f"border-top: 5px solid {WHITE};"
-                                      "}"
-                                      # QTabBar::tab:selected,
-                                      "QTabBar::tab:hover {"
-                                      # same as the pane
-                                      f"border: 5px solid {GREY};"
-                                      "}"
-                                      "QTabBar::close-button {"
-                                      "image: url(icons/close_x.svg)"
-                                      "}"
-                                      "QTabBar::close-button:hover {"
-                                      "image: url(icons/close_x_hover.svg)"
-                                      "}"
-                                      #   "QToolTip{"
-                                      #   f"border: 2px solid {WHITE}; padding: 5px; background: {GREY};"
-                                      #   f"border-radius: 5px; opacity: 200; color: {WHITE}"
-                                      #   "}"
-                                      )
+
+        self.tab_widget.setStyleSheet(
+            # making the page of the tabs green/black
+            # top lef and bottom right
+            # factors in % 1==completely width and height and so on
+            f"""QWidget {{
+                    background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                    stop: 0 {SPOTIFY_GREEN}, stop: 1 {BLACK});
+                    }}
+                QTabWidget::tab-bar {{
+                    alignment: center;
+                    }}"""
+            # The tab widget frame at the top, shifts the tabs in the border
+            f"""QTabWidget::pane {{
+                    border-top: 5px solid {WHITE};
+                    position: absolute; top: -20px;
+                    }}"""
+            # making the Tabs in the Tab Bar green
+            f"""QTabBar::tab {{
+                    background:  {SPOTIFY_GREEN};
+                    border: 2px solid {WHITE};
+                    border-top-left-radius: 10px; border-top-right-radius: 10px;
+                    padding: 8px;
+                    font: Arial; color: {WHITE};
+                    }}
+                QTabBar::tab:selected {{
+                    background:  {SPOTIFY_BLUE};
+                    border-top: 5px solid {WHITE};
+                    }}"""
+            # QTabBar::tab:selected, # same as the pane
+            f"""QTabBar::tab:hover {{
+                    border: 5px solid {GREY};
+                    }}
+                QTabBar::close-button {{
+                    image: url(icons/close_x.svg);
+                    }}
+                QTabBar::close-button:hover {{
+                    image: url(icons/close_x_hover.svg);
+                    }}"""
+        )
 
         # creating a layout for flexible usage
         # QHBoxLayout(self.tab_widget) was necessary     QHBoxLayout() is not working
@@ -769,7 +814,7 @@ class MainWindow(QMainWindow):
     def close_Tab(self, current_Index):
         """
             callback Function, when the Tabs getting closed
-            TODO: adding functionality, to add the tabs again (maybe from the Info Tab?)
+            TODO: adding functionality, to add the tabs again(maybe from the Info Tab?)
             TODO: Making the Info Tab uncloseable
 
         """

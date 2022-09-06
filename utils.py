@@ -119,7 +119,8 @@ def get_recently_played(sp, amount_of_tracks=20):
         'songs': [],
         'artists': [],
         'date': [],
-        'uri': []
+        'uri': [],
+        'img_url': []
     }
 
     for item in rec_played['items']:
@@ -127,6 +128,7 @@ def get_recently_played(sp, amount_of_tracks=20):
         data['artists'].append(item['track']['artists'][0]['name'])
         data['date'].append(convert_date(date=item['played_at']))
         data['songs'].append(item['track']['uri'])
+        data['img_url'].append(None)
 
     return data  # dict()
 
@@ -143,7 +145,8 @@ def get_tracks_from_favoritesongs(sp):
         'amount': None,
         'songs': [],
         'artists': [],
-        'uri': []
+        'uri': [],
+        'img_url': []
     }
 
     data['amount'] = fav_songs['total']
@@ -151,6 +154,7 @@ def get_tracks_from_favoritesongs(sp):
         data['songs'].append(song['track']['name'])
         data['artists'].append(song['track']['album']['artists'][0]['name'])
         data['uri'].append(song['track']['uri'])
+        data['img_url'].append(song['track']['album']['images'][0]['url'])
 
     return data  # dict()
 
