@@ -1,3 +1,4 @@
+from cProfile import label
 from utils import *
 from authentication import authenticate
 import requests
@@ -182,6 +183,21 @@ class TopArtistsTab(QWidget):
             self.setLayout(artist_layout)
 
 
+class InputWin(QWidget):
+    """
+        This class is called, when the user want to create an playlist.
+        The Window let the user insert input parameters, which are necessary for creating
+        a new playlist
+    """
+
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        layout = QVBoxLayout()
+        self.label = QLabel("Another Window")
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+
 class TopSongsTab(QWidget):
     """
         This class handels all the Widgets, Data and Information regarding the all Time
@@ -194,14 +210,38 @@ class TopSongsTab(QWidget):
         rows = len(data['songs'])*2  # songname AND Artist name per track
         pic_width, pic_height = 150, 150  # px
 
-        song_layout = QGridLayout(self)
+        main_song_layout = QVBoxLayout(self)
 
+        header_layout = QHBoxLayout()
         title = QLabel("Your top tracks of all time\n", self)
         title.setFont(QFont("Helvetica", 35))
         title.setStyleSheet(
             "font-weight: bold; background: transparent")
-        song_layout.addWidget(title, 0, 0, 1, 2, Qt.AlignCenter)
+        header_layout.addWidget(title, 2, Qt.AlignCenter)
 
+        ''' Create Playlist Button '''
+        create_playlist = QPushButton(
+            QIcon("icons/create_playlist.svg"), "\tCreate Playlist", self)
+        create_playlist.setFont(QFont("comicsans", 15))
+        create_playlist.setMinimumSize(300, 50)
+        create_playlist.setToolTip("Create Playlist")  # hover_message
+        create_playlist.setStyleSheet(f"""QPushButton{{
+                             background: {BLACK}; border-style: outset; border-width: 3px;
+                             border-radius: 10px; border-color: white; color: white;
+                             padding: 6px;
+                             }}
+                             QPushButton::hover{{
+                             background-color: {SPOTIFY_GREEN};
+                             }}
+                             QToolTip{{
+                             border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                             border-radius: 5px; opacity: 200; color: {WHITE};
+                             }}""")
+        create_playlist.clicked.connect(self.create_new_playlist)
+        header_layout.addWidget(create_playlist, 2, Qt.AlignRight)
+        main_song_layout.addLayout(header_layout)
+
+        body_layout = QGridLayout()
         song_index = 0
         artist_index = 0
         for index in range(2, rows+2, 1):
@@ -238,8 +278,8 @@ class TopSongsTab(QWidget):
                 image_label.setStyleSheet("background: transparent")
 
                 # SONG LEFT, PICTURE RIGHT
-                song_layout.addWidget(track_Label, index, 0, Qt.AlignLeft)
-                song_layout.addWidget(image_label, index,
+                body_layout.addWidget(track_Label, index, 0, Qt.AlignLeft)
+                body_layout.addWidget(image_label, index,
                                       1, 2, 1, Qt.AlignCenter)
 
                 song_index += 1
@@ -253,11 +293,18 @@ class TopSongsTab(QWidget):
                 artist_Label.setStyleSheet("background: transparent")
 
                 # ARTIST LEFT, PICTURE RIGHT
-                song_layout.addWidget(artist_Label, index, 0, Qt.AlignLeft)
+                body_layout.addWidget(artist_Label, index, 0, Qt.AlignLeft)
 
                 artist_index += 1
+        main_song_layout.addLayout(body_layout, 2)
 
-        self.setLayout(song_layout)
+        self.setLayout(main_song_layout)
+
+    def create_new_playlist(self, checked):
+        input_window = InputWin()
+        input_window.setGeometry(500, 500, 500, 500)
+        # input_window.setStyleSheet("background: black")
+        input_window.show()
 
 
 class InfoTab(QWidget):
