@@ -1,4 +1,3 @@
-from urllib.error import HTTPError
 from prettyprinter import pprint
 from authentication import authenticate
 import requests
@@ -33,7 +32,8 @@ def get_current_user(sp):
         'uri': user['uri'],
         'profile_url': user['external_urls']['spotify'],
         'membership': user['product'],  # f.ex. premium
-        'profile_img': user['images'][0]['url']
+        'profile_img': user['images'][0]['url'],
+        'id': user['id']
     }
 
     return data  # dict()
@@ -127,8 +127,8 @@ def get_recently_played(sp, amount_of_tracks=20):
         data['songs'].append(item['track']['name'])
         data['artists'].append(item['track']['artists'][0]['name'])
         data['date'].append(convert_date(date=item['played_at']))
-        data['songs'].append(item['track']['uri'])
-        data['img_url'].append(None)
+        data['uri'].append(item['track']['uri'])
+        data['img_url'].append(item['track']['album']['images'][0]['url'])
 
     return data  # dict()
 
@@ -303,5 +303,47 @@ def control_volume(sp, volume_percent):
     sp.volume(volume_percent=volume_percent)
 
 
+def create_playlist(sp, songs, playlist_name="", visability_status="public", collaborate=False, playlist_description=""):
+    """
+        This function creates a new playlist
+
+        params:
+            - songs: a list of track URIs, URLs or IDs
+            - playlist_name: The name of the playlist            
+            - visability_status: decides, wheter the playlist is public (True) or private (False)
+            - collaborate: decides, wheter the playlist is aditable with another person or only by one user
+            - playlist_description: The description of the playlist
+
+            ### - track_pos: the position to add the tracks
+    """
+
+    # TODO: playlist is akways public (True or false doesn't work)
+    status = True  # default is public (True)
+    if visability_status == "private":
+        status = False
+
+    curr_user = get_current_user(sp=sp)
+    # creating an empty playlist
+    playlist = sp.user_playlist_create(
+        user=curr_user['id'], name=playlist_name, public=status, collaborative=collaborate, description=playlist_description)
+
+    # adding tracks to the playlist
+    sp.user_playlist_add_tracks(
+        user=curr_user['id'], playlist_id=playlist['id'], tracks=songs, position=None)
+
+
+"""
+def get_playlist_data(sp, playlist_id)
+
+    data = {
+        'name':None,
+        'id': playlist_id,
+        'url': None,
+        'cover_img':None
+    }
+    # getting the image of Playlistcover
+    playlist_img = sp.playlist_cover_image(
+        playlist_id=playlist['id'])[0]['url']
+"""
+
 # sp = authenticate()
-# set_repeat_mode(sp=sp)

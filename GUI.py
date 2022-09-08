@@ -1,6 +1,3 @@
-from gzip import READ
-from turtle import title
-from xml.etree.ElementTree import PI
 from utils import *
 from authentication import authenticate
 import requests
@@ -11,11 +8,6 @@ from prettyprinter import pprint
 ''' --- GUI Imports --- '''
 import sys
 from PIL import Image, ImageTk
-# from PySide6 import *
-# from PySide6.QtWidgets import *  # z.B. PySide6.QtWidgets.QVBoxLayout
-# from PySide6.QtGui import *  # QFont
-# from PySide6.QtCore import *
-
 from PyQt5 import *
 from PyQt5.QtWidgets import *  # z.B. PyQt5.QtWidgets.QVBoxLayout
 from PyQt5.QtGui import *  # QFont
@@ -46,6 +38,11 @@ class SavedFavSongs(QWidget):
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
+
+        # self.setStyleSheet(f"""QWidget {{
+        #             background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+        #             stop: 0 {SPOTIFY_BLUE}, stop: 1 {WHITE});
+        #             }}""")
 
         data = get_tracks_from_favoritesongs(sp=sp)
         rows = len(data['songs'])*2  # songname AND Artist name per track
@@ -213,7 +210,7 @@ class TopSongsTab(QWidget):
                 """ Visualize top Tracks """
                 curr_track = str(data['songs'][song_index])
                 track_Label = QLabel(f"{song_index + 1}. {curr_track}", self)
-                track_Label.setWordWrap(True)
+                # track_Label.setWordWrap(True)
                 track_Label.setFont(QFont("Helvetica", 25))
                 track_Label.setStyleSheet(
                     "font-weight: bold; background: transparent")
@@ -728,20 +725,20 @@ class MainWindow(QMainWindow):
         # creating an Area, where a Scroll bar is added, when the space isn't enough
         top_songs_scrollbar = QScrollArea()
         top_songs_scrollbar.setWidgetResizable(True)
-        top_songs_tab = TopSongsTab(self)  # instance of TopSongsTab
+        top_songs_tab = TopSongsTab(parent=self)  # instance of TopSongsTab
         # setting the scrollbar to the Tab(s)
         top_songs_scrollbar.setWidget(top_songs_tab)
 
         top_artist_scrollbar = QScrollArea()
         top_artist_scrollbar.setWidgetResizable(True)
-        top_artist_scrollbar.setWidget(TopArtistsTab(self))
+        top_artist_scrollbar.setWidget(TopArtistsTab(parent=self))
 
         fav_songs_scrollbar = QScrollArea()
         fav_songs_scrollbar.setWidgetResizable(True)
-        fav_songs_scrollbar.setWidget(SavedFavSongs(self))
+        fav_songs_scrollbar.setWidget(SavedFavSongs(parent=self))
 
         #  adding all Tabs to the TabWidget
-        self.tab_widget.addTab(InfoTab(self), QIcon(
+        self.tab_widget.addTab(InfoTab(parent=self), QIcon(
             "icons/info.svg"), "General Infos")
         self.tab_widget.addTab(top_songs_scrollbar, QIcon(
             "icons/top_tracks.svg"), "Your all Time Fav's")
@@ -761,8 +758,8 @@ class MainWindow(QMainWindow):
         # setting the background of the tabbar transparent
         tab_bar.setStyleSheet("background: transparent")
         curr_win_width, curr_win_height = self.width(), self.height()
-        # styling the Tabs and the tabpage
 
+        # styling the Tabs and the tabpage
         self.tab_widget.setStyleSheet(
             # making the page of the tabs green/black
             # top lef and bottom right
