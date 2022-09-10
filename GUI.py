@@ -25,6 +25,7 @@ LIGHT_GREY = "#7F8285"
 WHITE = "#FFFFFF"
 BLACK = "#000000"
 GREY = "#6B6A69"
+RED = "#A81616"
 PINK = "#611038"
 
 
@@ -38,7 +39,7 @@ class SavedFavSongs(QWidget):
     """
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(SavedFavSongs, self).__init__(parent)
 
         # self.setStyleSheet(f"""QWidget {{
         #             background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
@@ -122,7 +123,7 @@ class TopArtistsTab(QWidget):
     """
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(TopArtistsTab, self).__init__(parent)
 
         data = get_all_top_artists(sp=sp)
         rows = len(data['artists'])*2  # Artist Name AND Followers
@@ -183,21 +184,6 @@ class TopArtistsTab(QWidget):
             self.setLayout(artist_layout)
 
 
-class InputWin(QWidget):
-    """
-        This class is called, when the user want to create an playlist.
-        The Window let the user insert input parameters, which are necessary for creating
-        a new playlist
-    """
-
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        layout = QVBoxLayout()
-        self.label = QLabel("Another Window")
-        layout.addWidget(self.label)
-        self.setLayout(layout)
-
-
 class TopSongsTab(QWidget):
     """
         This class handels all the Widgets, Data and Information regarding the all Time
@@ -205,7 +191,7 @@ class TopSongsTab(QWidget):
     """
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(TopSongsTab, self).__init__(parent)
         data = get_all_top_tracks(sp=sp)
         rows = len(data['songs'])*2  # songname AND Artist name per track
         pic_width, pic_height = 150, 150  # px
@@ -301,10 +287,231 @@ class TopSongsTab(QWidget):
         self.setLayout(main_song_layout)
 
     def create_new_playlist(self, checked):
-        input_window = InputWin()
-        input_window.setGeometry(500, 500, 500, 500)
-        # input_window.setStyleSheet("background: black")
+        input_window = InputWin(self)
+        input_window.setWindowTitle("Playlist properties")
+        input_window.setWindowIcon(QIcon("imgs/Spotify_logo.png"))
+        # input_window.setSizePolicy(1500, 1000)
         input_window.show()
+
+
+class InputWin(QDialog):
+    """
+        This class is called, when the user want to create an playlist.
+        The Window let the user insert input parameters, which are necessary for creating
+        a new playlist
+    """
+
+    ROWS = 4
+    COLUMNS = 2
+
+    def __init__(self, parent: QWidget):
+        super(InputWin, self).__init__(parent)
+
+        self.setStyleSheet(f"background: {BLACK}")
+        self.setMinimumSize(1000, 750)
+
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        button_box.button(QDialogButtonBox.Ok).setStyleSheet(
+            f"""
+            QPushButton {{
+                background: {SPOTIFY_BLUE}; border-style: outset; border-width: 3px;
+                border-radius: 10px; border-color: {SPOTIFY_GREEN}; color: {WHITE};
+                padding: 6px; opacity: 200;
+            }}
+
+            QPushButton::hover{{
+                background-color: {SPOTIFY_GREEN};
+            }}
+            """)
+        button_box.button(QDialogButtonBox.Ok).setIcon(QIcon("icons/OK.svg"))
+
+        button_box.button(QDialogButtonBox.Cancel).setStyleSheet(
+            f"""
+            QPushButton {{
+                background: {RED}; border-style: outset; border-width: 3px;
+                border-radius: 10px; border-color: {SPOTIFY_GREEN}; color: {WHITE};
+                padding: 6px; opacity: 50;
+            }}
+
+            QPushButton::hover{{
+                background-color: {GREY};
+            }}
+            """)
+        button_box.button(QDialogButtonBox.Cancel).setIcon(
+            QIcon("icons/Cancel.svg"))
+
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        main_layout = QVBoxLayout()
+
+        self._form_group_box = QGroupBox(
+            "Input Paramters for creating a Playlist")  # makes the little frame
+        self._form_group_box.setFont(QFont("Helvetica", 15))
+        self._form_group_box.setStyleSheet(
+            f"""
+            QGroupBox {{
+                background-color: {BLACK};
+                border: 5px solid {SPOTIFY_GREEN};
+                border-radius: 10px;
+                margin-top: 7ex; /* leave space at the top for the title */
+            }}
+
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                subcontrol-position: top center; /* position at the top center */
+                font-weight: bold; color: {WHITE};
+                border-radius: 5px;
+                padding: 0 10px;
+                background-color: {LIGHT_GREY}; opacity: 150; /* from 0 (transparent) to 255 (not transparent) */
+            }}
+
+            QGroupBox::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+
+            QGroupBox::indicator:unchecked {{
+                image: url("imgs/Spotify_logo.png");
+            }}
+            """)
+
+        layout = QFormLayout()
+
+        """ Playlist Name """
+        playlist_name = QLabel("Name:")
+        playlist_name.setFont(QFont("Helvetica", 12))
+        playlist_name.setStyleSheet(
+            f"font-weight: bold; background: transparent; color: {WHITE}")
+        name_entry = QLineEdit()
+        name_entry.setStyleSheet(
+            f"""
+            QLineEdit {{
+                border: 3px solid {SPOTIFY_GREEN};
+                border-radius: 10px;
+                padding: 0 8px;
+                background: {LIGHT_GREY}; font: Helvetica; color: {WHITE};
+                selection-background-color: darkgray; opacity: 200;
+            }}
+
+            QLineEdit:focus {{
+                border: 3px solid {SPOTIFY_BLUE};
+            }}
+
+            QLineEdit[echoMode="2"] {{
+                lineedit-password-character: 9679;
+            }}
+
+            QLineEdit:read-only {{
+                background: lightblue;
+            }}
+            """)
+        name_entry.setCursorMoveStyle(Qt.CursorMoveStyle.VisualMoveStyle)
+        layout.addRow(playlist_name, name_entry)
+
+        """ Playlist Visability Status """
+        visability = QLabel("Visability:")
+        visability.setFont(QFont("Helvetica", 12))
+        visability.setStyleSheet(
+            f"font-weight: bold; background: transparent; color: {WHITE}")
+        vis_btn_group = QHBoxLayout()
+        public_visability = QRadioButton("public")
+        public_visability.setFont(QFont("Arial", 10))
+        public_visability.setStyleSheet(
+            f"""
+            QRadioButton {{
+                background: transparent; color: {WHITE};
+            }}
+
+            QRadioButton::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+            """)
+        private_visability = QRadioButton("private")
+        private_visability.setFont(QFont("Arial", 10))
+        private_visability.setStyleSheet(
+            f"""
+            QRadioButton {{
+                background: transparent; color: {WHITE};
+            }}
+
+            QRadioButton::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+            """)
+        vis_btn_group.addWidget(public_visability, Qt.AlignCenter)
+        vis_btn_group.addWidget(private_visability, Qt.AlignCenter)
+        layout.addRow(visability, vis_btn_group)
+
+        """ Playlist Collaboration Status """
+        collaborate = QLabel("Collaborate?:")
+        collaborate.setFont(QFont("Helvetica", 12))
+        collaborate.setStyleSheet(
+            f"font-weight: bold; background: transparent; color: {WHITE}")
+        coll_btn_group = QHBoxLayout()
+        collaborate_true = QRadioButton("Yes")
+        collaborate_true.setFont(QFont("Arial", 10))
+        collaborate_true.setStyleSheet(
+            f"""
+            QRadioButton {{
+                background: transparent; color: {WHITE};
+            }}
+
+            QRadioButton::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+            """)
+        collaborate_false = QRadioButton("No")
+        collaborate_false.setFont(QFont("Arial", 10))
+        collaborate_false.setStyleSheet(
+            f"""
+            QRadioButton {{
+                background: transparent; color: {WHITE};
+            }}
+
+            QRadioButton::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+            """)
+        coll_btn_group.addWidget(collaborate_true, Qt.AlignCenter)
+        coll_btn_group.addWidget(collaborate_false, Qt.AlignCenter)
+        layout.addRow(collaborate, coll_btn_group)
+
+        """ Playlist description """
+        playlist_description = QLabel("Desciption:")
+        playlist_description.setFont(QFont("Helvetica", 12))
+        playlist_description.setStyleSheet(
+            f"font-weight: bold; background: transparent; color: {WHITE}")
+        descr_entry = QTextEdit()
+        descr_entry.setStyleSheet(
+            f"""
+            QTextEdit {{
+                border: 3px solid {SPOTIFY_GREEN};
+                border-radius: 10px;
+                padding: 0 8px;
+                background: {LIGHT_GREY}; font: Helvetica; color: {WHITE};
+                selection-background-color: darkgray; opacity: 200;
+            }}
+
+            QTextEdit:focus {{
+                border: 3px solid {SPOTIFY_BLUE};
+            }}
+            """)
+        layout.addRow(playlist_description, descr_entry)
+
+        self._form_group_box.setLayout(layout)
+
+        main_layout.addWidget(self._form_group_box)
+
+        # calling at the end, so it appears at the bottom right
+        main_layout.addWidget(button_box)
+        self.setLayout(main_layout)
 
 
 class InfoTab(QWidget):
@@ -313,7 +520,7 @@ class InfoTab(QWidget):
     """
 
     def __init__(self, parent: QWidget):
-        super().__init__(parent)
+        super(InfoTab, self).__init__(parent)
 
         ''' MAIN INFO Layoout Manager '''
         main_info_layout = QGridLayout(self)
@@ -640,7 +847,8 @@ class InfoTab(QWidget):
         else:
             self.suffle_status = True
 
-        set_shuffle_mode(sp=sp, status=self.suffle_status)  # default: False
+        # default: False
+        set_shuffle_mode(sp=sp, status=self.suffle_status)
 
     def toggle_repeat_status(self):
         if self.repeat_status:
