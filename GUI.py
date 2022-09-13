@@ -1,3 +1,4 @@
+from time import sleep
 from utils import *
 from authentication import authenticate
 import requests
@@ -287,21 +288,14 @@ class TopSongsTab(QWidget):
         self.setLayout(main_song_layout)
 
     def create_new_playlist(self):
-        input_window = InputWin(self)
+        input_window = InputWin(parent=self, tracks_uri=self.track_uris)
         input_window.setWindowTitle("Playlist properties")
         input_window.setWindowIcon(QIcon("imgs/Spotify_logo.png"))
         input_window.show()
 
-        name = input_window.get_playlist_name()
-        description = input_window.get_playlist_description()
-        print(name, description)
-        if (not name) or (not description):  # if return val is None
-            name, description = "All Time Fav's Playlist", "No description passed by user"
-
-        create_playlist(sp=sp, songs=self.track_uris,
-                        playlist_name=name,
-                        visability_status="public", collaborate=False,
-                        playlist_description=description)
+        # name = input_window.get_playlist_name()
+        # description = input_window.get_playlist_description()
+        # print(name, description)
 
 
 class InputWin(QDialog):
@@ -311,17 +305,30 @@ class InputWin(QDialog):
         a new playlist
     """
 
-    def __init__(self, parent: QWidget):
+    def __init__(self, parent: QWidget, tracks_uri):
         super(InputWin, self).__init__(parent)
+
+        self.tracks_uri = tracks_uri
+
+        self.setStyleSheet(f"background: {BLACK}")
+        self.setMinimumSize(1000, 750)
+
         self.playlist_data = {
             'name': None,
             'public': False,
             'collaborate': False,
             'description': None
-        }
+        }  # currently unused, due to creation in this class
 
-        self.setStyleSheet(f"background: {BLACK}")
-        self.setMinimumSize(1000, 750)
+        self.create_UI_layout()
+
+        # only create a playlist, if user clicked OK Button
+        self.button_box.button(
+            QDialogButtonBox.Ok).clicked.connect(self.create_playlist)
+        # otherwise break up, and lose entered data (Cancel)
+        self.button_box.rejected.connect(self.reject)
+
+    def create_UI_layout(self):
 
         self.button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)  # submit/ cancel
@@ -366,7 +373,7 @@ class InputWin(QDialog):
         main_layout = QVBoxLayout()
 
         self._form_group_box = QGroupBox(
-            "Input Paramters for creating a Playlist")  # makes the little frame
+            "Input Paramters for creating a Playlist")  # makes the frame
         self._form_group_box.setFont(QFont("Helvetica", 15))
         self._form_group_box.setStyleSheet(
             f"""
@@ -396,7 +403,7 @@ class InputWin(QDialog):
             }}
             """)
 
-        layout = QFormLayout()
+        entry_layout = QFormLayout()
 
         """ Playlist Name """
         playlist_name = QLabel("Name:")
@@ -413,7 +420,7 @@ class InputWin(QDialog):
                 background: {LIGHT_GREY}; font: Helvetica; color: {WHITE};
                 selection-background-color: darkgray; opacity: 200;
             }}
-            
+
             QLineEdit:focus {{
                 border: 3px solid {SPOTIFY_BLUE};
             }}
@@ -428,7 +435,7 @@ class InputWin(QDialog):
             """)
         self.name_entry.setPlaceholderText("Playlist Name")
         self.name_entry.setCursorMoveStyle(Qt.CursorMoveStyle.VisualMoveStyle)
-        layout.addRow(playlist_name, self.name_entry)
+        entry_layout.addRow(playlist_name, self.name_entry)
 
         # TODO: fix stuff with QRadioButtons
         """ Playlist Visability Status """
@@ -459,7 +466,7 @@ class InputWin(QDialog):
             QRadioButton::indicator:unchecked:hover {{
                 image: url(icons/checked_hover.svg);
             }}
-            
+
             QRadioButton::indicator::checked {{
                 image: url(icons/checked.svg);
             }}
@@ -487,7 +494,7 @@ class InputWin(QDialog):
         private_visability.setChecked(False)  # default value
         vis_btn_layout.addWidget(public_visability, Qt.AlignCenter)
         vis_btn_layout.addWidget(private_visability, Qt.AlignCenter)
-        layout.addRow(visability, vis_btn_layout)
+        entry_layout.addRow(visability, vis_btn_layout)
 
         """ Playlist Collaboration Status """
         collaborate = QLabel("Collaborate?:")
@@ -527,7 +534,7 @@ class InputWin(QDialog):
         collaborate_true.setChecked(False)  # default value
         coll_btn_group.addWidget(collaborate_false, Qt.AlignCenter)
         coll_btn_group.addWidget(collaborate_true, Qt.AlignCenter)
-        layout.addRow(collaborate, coll_btn_group)
+        entry_layout.addRow(collaborate, coll_btn_group)
 
         """ Playlist description """
         playlist_description = QLabel("Desciption:")
@@ -550,34 +557,46 @@ class InputWin(QDialog):
                 border: 3px solid {SPOTIFY_BLUE};
             }}
             """)
-        layout.addRow(playlist_description, self.descr_entry)
+        entry_layout.addRow(playlist_description, self.descr_entry)
 
-        self._form_group_box.setLayout(layout)
+        self._form_group_box.setLayout(entry_layout)
 
         main_layout.addWidget(self._form_group_box)
-
-        self.button_box.button(
-            QDialogButtonBox.Ok).clicked.connect(self._add_data)
-
-        # TODO: have to press twice to add Data and close window
-        # break up, and lose data if canceled was pressed
-        self.button_box.rejected.connect(self.reject)
-
         # calling at the end, so it appears at the bottom right
         main_layout.addWidget(self.button_box)
+
         self.setLayout(main_layout)
 
+    def create_playlist(self):
+        name = self.name_entry.text()
+        description = self.descr_entry.toPlainText()
+        # vis_status = self.playlist_data['public']
+        # coll_status = self.playlist_data['collaborate']
+
+        if (not name) or (not description):  # if return val is None
+            name, description = "All Time Fav's Playlist", "No description passed by user"
+
+        create_playlist(sp=sp, songs=self.tracks_uri,
+                        playlist_name=name,
+                        visability_status="public", collaborate=False,
+                        playlist_description=description)
+
+        self.name_entry.clear()  # clear the entry for next creation
+        self.descr_entry.clear()  # clear the entry for next creation
+        self.close()  # close the window properly
+
+    # TODO: Actually I wanted to be this just as Formular, but I can't
+    #  save the data, so it's just accessable for their instance.
+    # So i need to create a playlist right here in this class.
+    # Help and tips are higly appreciated
     def _add_data(self):  # is only used intern the class
+        """
         self.playlist_data['name'] = self.name_entry.text()
         self.playlist_data['public'] = False
         self.playlist_data['collaborate'] = False
         self.playlist_data['description'] = self.descr_entry.toPlainText()
-
-        # TODO: Closing the Window after pressing OK and submit all data to the dict. Clearing all entrances
-        self.name_entry.clear()
-        self.descr_entry.clear()
-        self.close()  # to close the window properly
-        # self.button_box.accepted.connect(self.accept)
+        """
+        pass
 
     def get_playlist_name(self):
         return self.playlist_data["name"]
