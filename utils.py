@@ -16,7 +16,7 @@ def convert_date(date):
     return f"{day}.{month}.{year}"
 
 
-def get_current_user(sp):
+def get_current_user(sp) -> dict:
     '''
         This function returns all kind of information regarding the current user
         params:
@@ -39,7 +39,7 @@ def get_current_user(sp):
     return data  # dict()
 
 
-def get_all_top_tracks(sp):
+def get_all_top_tracks(sp) -> dict:
     '''
         This function returns all kind of data regarding the current user's top tracks
         params:
@@ -66,7 +66,7 @@ def get_all_top_tracks(sp):
     return data  # dict()
 
 
-def track_played_min(sp, song_id):
+def track_played_min(sp, song_id) -> dict:
     '''
         This function returns the duration, that a specific song was played returned in minutes
         params:
@@ -80,7 +80,7 @@ def track_played_min(sp, song_id):
     return int(all_time_duration_min)
 
 
-def get_all_top_artists(sp):
+def get_all_top_artists(sp) -> dict:
     '''
         This function returns all kind of data regarding the current user's top artists
         params:
@@ -106,7 +106,7 @@ def get_all_top_artists(sp):
     return data  # dict()
 
 
-def get_recently_played(sp, amount_of_tracks=20):
+def get_recently_played(sp, amount_of_tracks=20) -> dict:
     '''
         This function returns all kind of data regarding the recently played tracks
         params:
@@ -133,7 +133,7 @@ def get_recently_played(sp, amount_of_tracks=20):
     return data  # dict()
 
 
-def get_tracks_from_favoritesongs(sp):
+def get_tracks_from_favoritesongs(sp) -> dict:
     '''
         This returns all kind of data from the tracks, which are added in the 'favorite Songs' categorie
         params:
@@ -189,7 +189,7 @@ def add_track_to_fav_songs(sp, track_uri=[]):
     sp.current_user_saved_tracks_add(tracks=track_uri)
 
 
-def get_currently_playing_song(sp):
+def get_currently_playing_song(sp) -> dict:
     currently_playing = sp.current_user_playing_track()
 
     try:
@@ -346,4 +346,5 @@ def get_playlist_data(sp, playlist_id)
         playlist_id=playlist['id'])[0]['url']
 """
 
-# sp = authenticate()
+sp = authenticate()
+# pprint(get_all_top_tracks(sp=sp))

@@ -1,4 +1,3 @@
-from cProfile import label
 from utils import *
 from authentication import authenticate
 import requests
@@ -193,6 +192,7 @@ class TopSongsTab(QWidget):
     def __init__(self, parent: QWidget):
         super(TopSongsTab, self).__init__(parent)
         data = get_all_top_tracks(sp=sp)
+        self.track_uris = data['uri']  # list of track uri's
         rows = len(data['songs'])*2  # songname AND Artist name per track
         pic_width, pic_height = 150, 150  # px
 
@@ -286,12 +286,22 @@ class TopSongsTab(QWidget):
 
         self.setLayout(main_song_layout)
 
-    def create_new_playlist(self, checked):
+    def create_new_playlist(self):
         input_window = InputWin(self)
         input_window.setWindowTitle("Playlist properties")
         input_window.setWindowIcon(QIcon("imgs/Spotify_logo.png"))
-        # input_window.setSizePolicy(1500, 1000)
         input_window.show()
+
+        name = input_window.get_playlist_name()
+        description = input_window.get_playlist_description()
+        print(name, description)
+        if (not name) or (not description):  # if return val is None
+            name, description = "All Time Fav's Playlist", "No description passed by user"
+
+        create_playlist(sp=sp, songs=self.track_uris,
+                        playlist_name=name,
+                        visability_status="public", collaborate=False,
+                        playlist_description=description)
 
 
 class InputWin(QDialog):
@@ -301,19 +311,24 @@ class InputWin(QDialog):
         a new playlist
     """
 
-    ROWS = 4
-    COLUMNS = 2
-
     def __init__(self, parent: QWidget):
         super(InputWin, self).__init__(parent)
+        self.playlist_data = {
+            'name': None,
+            'public': False,
+            'collaborate': False,
+            'description': None
+        }
 
         self.setStyleSheet(f"background: {BLACK}")
         self.setMinimumSize(1000, 750)
 
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)  # submit/ cancel
 
-        button_box.button(QDialogButtonBox.Ok).setStyleSheet(
+        self.button_box.button(
+            QDialogButtonBox.Ok).setToolTip("Create Playlist")
+        self.button_box.button(QDialogButtonBox.Ok).setStyleSheet(
             f"""
             QPushButton {{
                 background: {SPOTIFY_BLUE}; border-style: outset; border-width: 3px;
@@ -324,10 +339,16 @@ class InputWin(QDialog):
             QPushButton::hover{{
                 background-color: {SPOTIFY_GREEN};
             }}
-            """)
-        button_box.button(QDialogButtonBox.Ok).setIcon(QIcon("icons/OK.svg"))
 
-        button_box.button(QDialogButtonBox.Cancel).setStyleSheet(
+            QToolTip{{
+                border: 2px solid {WHITE}; padding: 5px; background: {GREY};
+                border-radius: 5px; opacity: 200; color: {WHITE}
+                }}
+            """)
+        self.button_box.button(QDialogButtonBox.Ok).setIcon(
+            QIcon("icons/OK.svg"))
+
+        self.button_box.button(QDialogButtonBox.Cancel).setStyleSheet(
             f"""
             QPushButton {{
                 background: {RED}; border-style: outset; border-width: 3px;
@@ -339,11 +360,8 @@ class InputWin(QDialog):
                 background-color: {GREY};
             }}
             """)
-        button_box.button(QDialogButtonBox.Cancel).setIcon(
+        self.button_box.button(QDialogButtonBox.Cancel).setIcon(
             QIcon("icons/Cancel.svg"))
-
-        button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
 
         main_layout = QVBoxLayout()
 
@@ -385,8 +403,8 @@ class InputWin(QDialog):
         playlist_name.setFont(QFont("Helvetica", 12))
         playlist_name.setStyleSheet(
             f"font-weight: bold; background: transparent; color: {WHITE}")
-        name_entry = QLineEdit()
-        name_entry.setStyleSheet(
+        self.name_entry = QLineEdit()
+        self.name_entry.setStyleSheet(
             f"""
             QLineEdit {{
                 border: 3px solid {SPOTIFY_GREEN};
@@ -395,7 +413,7 @@ class InputWin(QDialog):
                 background: {LIGHT_GREY}; font: Helvetica; color: {WHITE};
                 selection-background-color: darkgray; opacity: 200;
             }}
-
+            
             QLineEdit:focus {{
                 border: 3px solid {SPOTIFY_BLUE};
             }}
@@ -408,17 +426,20 @@ class InputWin(QDialog):
                 background: lightblue;
             }}
             """)
-        name_entry.setCursorMoveStyle(Qt.CursorMoveStyle.VisualMoveStyle)
-        layout.addRow(playlist_name, name_entry)
+        self.name_entry.setPlaceholderText("Playlist Name")
+        self.name_entry.setCursorMoveStyle(Qt.CursorMoveStyle.VisualMoveStyle)
+        layout.addRow(playlist_name, self.name_entry)
 
+        # TODO: fix stuff with QRadioButtons
         """ Playlist Visability Status """
         visability = QLabel("Visability:")
         visability.setFont(QFont("Helvetica", 12))
         visability.setStyleSheet(
             f"font-weight: bold; background: transparent; color: {WHITE}")
-        vis_btn_group = QHBoxLayout()
+        vis_btn_layout = QHBoxLayout()
         public_visability = QRadioButton("public")
         public_visability.setFont(QFont("Arial", 10))
+        public_visability.setCursor(QCursor(Qt.PointingHandCursor))
         public_visability.setStyleSheet(
             f"""
             QRadioButton {{
@@ -429,9 +450,28 @@ class InputWin(QDialog):
                 width: 13px;
                 height: 13px;
             }}
+
+            /*
+            QRadioButton::indicator::unchecked {{
+                image: url(icons/unchecked.svg);
+            }}
+
+            QRadioButton::indicator:unchecked:hover {{
+                image: url(icons/checked_hover.svg);
+            }}
+            
+            QRadioButton::indicator::checked {{
+                image: url(icons/checked.svg);
+            }}
+
+            QRadioButton::indicator:checked:hover {{
+                image: url(icons/unchecked_hover.svg);
+            }} */
+
             """)
         private_visability = QRadioButton("private")
         private_visability.setFont(QFont("Arial", 10))
+        private_visability.setCursor(QCursor(Qt.PointingHandCursor))
         private_visability.setStyleSheet(
             f"""
             QRadioButton {{
@@ -443,9 +483,11 @@ class InputWin(QDialog):
                 height: 13px;
             }}
             """)
-        vis_btn_group.addWidget(public_visability, Qt.AlignCenter)
-        vis_btn_group.addWidget(private_visability, Qt.AlignCenter)
-        layout.addRow(visability, vis_btn_group)
+        public_visability.setChecked(True)  # default value
+        private_visability.setChecked(False)  # default value
+        vis_btn_layout.addWidget(public_visability, Qt.AlignCenter)
+        vis_btn_layout.addWidget(private_visability, Qt.AlignCenter)
+        layout.addRow(visability, vis_btn_layout)
 
         """ Playlist Collaboration Status """
         collaborate = QLabel("Collaborate?:")
@@ -454,20 +496,9 @@ class InputWin(QDialog):
             f"font-weight: bold; background: transparent; color: {WHITE}")
         coll_btn_group = QHBoxLayout()
         collaborate_true = QRadioButton("Yes")
-        collaborate_true.setFont(QFont("Arial", 10))
-        collaborate_true.setStyleSheet(
-            f"""
-            QRadioButton {{
-                background: transparent; color: {WHITE};
-            }}
-
-            QRadioButton::indicator {{
-                width: 13px;
-                height: 13px;
-            }}
-            """)
         collaborate_false = QRadioButton("No")
         collaborate_false.setFont(QFont("Arial", 10))
+        collaborate_false.setCursor(QCursor(Qt.PointingHandCursor))
         collaborate_false.setStyleSheet(
             f"""
             QRadioButton {{
@@ -479,8 +510,23 @@ class InputWin(QDialog):
                 height: 13px;
             }}
             """)
-        coll_btn_group.addWidget(collaborate_true, Qt.AlignCenter)
+        collaborate_true.setFont(QFont("Arial", 10))
+        collaborate_true.setCursor(QCursor(Qt.PointingHandCursor))
+        collaborate_true.setStyleSheet(
+            f"""
+            QRadioButton {{
+                background: transparent; color: {WHITE};
+            }}
+
+            QRadioButton::indicator {{
+                width: 13px;
+                height: 13px;
+            }}
+            """)
+        collaborate_false.setChecked(True)  # default value
+        collaborate_true.setChecked(False)  # default value
         coll_btn_group.addWidget(collaborate_false, Qt.AlignCenter)
+        coll_btn_group.addWidget(collaborate_true, Qt.AlignCenter)
         layout.addRow(collaborate, coll_btn_group)
 
         """ Playlist description """
@@ -488,8 +534,9 @@ class InputWin(QDialog):
         playlist_description.setFont(QFont("Helvetica", 12))
         playlist_description.setStyleSheet(
             f"font-weight: bold; background: transparent; color: {WHITE}")
-        descr_entry = QTextEdit()
-        descr_entry.setStyleSheet(
+        self.descr_entry = QTextEdit()
+        self.descr_entry.setPlaceholderText("Playlist Description")
+        self.descr_entry.setStyleSheet(
             f"""
             QTextEdit {{
                 border: 3px solid {SPOTIFY_GREEN};
@@ -503,15 +550,46 @@ class InputWin(QDialog):
                 border: 3px solid {SPOTIFY_BLUE};
             }}
             """)
-        layout.addRow(playlist_description, descr_entry)
+        layout.addRow(playlist_description, self.descr_entry)
 
         self._form_group_box.setLayout(layout)
 
         main_layout.addWidget(self._form_group_box)
 
+        self.button_box.button(
+            QDialogButtonBox.Ok).clicked.connect(self._add_data)
+
+        # TODO: have to press twice to add Data and close window
+        # break up, and lose data if canceled was pressed
+        self.button_box.rejected.connect(self.reject)
+
         # calling at the end, so it appears at the bottom right
-        main_layout.addWidget(button_box)
+        main_layout.addWidget(self.button_box)
         self.setLayout(main_layout)
+
+    def _add_data(self):  # is only used intern the class
+        self.playlist_data['name'] = self.name_entry.text()
+        self.playlist_data['public'] = False
+        self.playlist_data['collaborate'] = False
+        self.playlist_data['description'] = self.descr_entry.toPlainText()
+
+        # TODO: Closing the Window after pressing OK and submit all data to the dict. Clearing all entrances
+        self.name_entry.clear()
+        self.descr_entry.clear()
+        self.close()  # to close the window properly
+        # self.button_box.accepted.connect(self.accept)
+
+    def get_playlist_name(self):
+        return self.playlist_data["name"]
+
+    def get_visability_status(self):
+        return self.playlist_data["public"]
+
+    def get_collaboration_status(self):
+        return self.playlist_data["collaborate"]
+
+    def get_playlist_description(self):
+        return self.playlist_data["description"]
 
 
 class InfoTab(QWidget):
