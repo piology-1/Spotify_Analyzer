@@ -1,3 +1,5 @@
+from cmath import log
+from email import message
 from time import sleep
 from utils import *
 from authentication import authenticate
@@ -915,12 +917,13 @@ class InfoTab(QWidget):
         # info_layout.addWidget(top_artists_button, 3, 0, Qt.AlignTop)
 
         ''' Logout Button '''
-        logout = QPushButton(QIcon("icons/log-out.svg"), "\tLog out", self)
-        logout.setFont(QFont("comicsans", 15))
-        logout.setMinimumSize(250, 50)
-        logout.setToolTip("Log-out")  # hover_message
+        self.logout_btn = QPushButton(
+            QIcon("icons/log-out.svg"), "\tLog out", self)
+        self.logout_btn.setFont(QFont("comicsans", 15))
+        self.logout_btn.setMinimumSize(250, 50)
+        self.logout_btn.setToolTip("Log-out")  # hover_message
         # TODO: change Size
-        logout.setStyleSheet(f"""QPushButton{{
+        self.logout_btn.setStyleSheet(f"""QPushButton{{
                              background: {BLACK}; border-style: outset; border-width: 3px;
                              border-radius: 10px; border-color: white; color: white;
                              padding: 6px;
@@ -928,12 +931,15 @@ class InfoTab(QWidget):
                              QPushButton::hover{{
                              background-color: {SPOTIFY_GREEN};
                              }}
+                             /* Style of hover message an logout message */
                              QToolTip{{
                              border: 2px solid {WHITE}; padding: 5px; background: {GREY};
                              border-radius: 5px; opacity: 200; color: {WHITE};
-                             }}""")
-        # TODO: logout.clicked.connect(self.spotify_logout)
-        main_info_layout.addWidget(logout, 0, 1, Qt.AlignRight)
+                             }}
+                             """)
+        # TODO:
+        self.logout_btn.clicked.connect(self.spotify_logout)
+        main_info_layout.addWidget(self.logout_btn, 0, 1, Qt.AlignRight)
 
         self.setLayout(main_info_layout)
 
@@ -1026,8 +1032,29 @@ class InfoTab(QWidget):
         pass
 
     def spotify_logout(self):
-        if os.path.exists(".cache"):
-            os.remove(".cache")
+        # if os.path.exists(".cache"):
+        #     os.remove(".cache")
+
+        # need add the showText() to the logout_btn, due to setStyleSheet (hover and showText() are looking now the same)
+
+        popup_width, popup_height = 200, 20
+        win_geo = window.geometry()  # returns PyQt5.QtCore.QRect(x, y, width, height)
+        win_x, win_y, win_width, win_height = win_geo.getRect()  # returns tuple
+
+        top_left = win_geo.topLeft()  # returns QPoint(x, y)
+        top_right = win_geo.topRight()
+        top_center = top_left + \
+            QPoint((win_width // 2) - (popup_width // 2), popup_height)
+        bottom_left = win_geo.bottomLeft()
+        bottom_right = win_geo.bottomRight()
+        bottom_center = bottom_left + \
+            QPoint((win_width // 2) - (popup_width // 2), (-5)*popup_height)
+
+        logout_popup = QToolTip  # making not an instance
+        print(logout_popup.__sizeof__(logout_popup.text()))
+
+        logout_popup.showText(
+            QPoint(bottom_center), "You loged out sucessfully!", self.logout_btn)
 
     def call_no_active_device_found_error(self):
         error_msg = QMessageBox()
@@ -1079,61 +1106,60 @@ class MainWindow(QMainWindow):
         top_songs_scrollbar.setWidgetResizable(True)
         top_songs_tab = TopSongsTab(parent=self)  # instance of TopSongsTab
         # setting the scrollbar to the Tab(s)
+
         top_songs_scrollbar.setStyleSheet(
             """
-            /* --------------------------------------- QScrollBar  -----------------------------------*/
             QScrollBar:horizontal
             {
-                height: 15px;
-                margin: 3px 15px 3px 15px;
-                border: 1px transparent #2A2929;
+                background-color: grey;
+                width: 15px;
+                margin: 15px 3px 15px 3px;
+                border: 1px transparent;
                 border-radius: 4px;
-                background-color: yellow;    /* #2A2929; */
             }
 
             QScrollBar::handle:horizontal
             {
-                background-color: blue;      /* #605F5F; */
-                min-width: 5px;
+                background-color: white;         /* #605F5F; */
+                min-height: 5px;
                 border-radius: 4px;
-            }
-
-            QScrollBar::add-line:horizontal
-            {
-                margin: 0px 3px 0px 3px;
-                border-image: url(:/qss_icons/rc/right_arrow_disabled.png);
-                width: 10px;
-                height: 10px;
-                subcontrol-position: right;
-                subcontrol-origin: margin;
             }
 
             QScrollBar::sub-line:horizontal
             {
-                margin: 0px 3px 0px 3px;
-                border-image: url(:/qss_icons/rc/left_arrow_disabled.png);
+                margin: 3px 0px 3px 0px;
+                border-image: url(:/qss_icons/rc/up_arrow_disabled.png);
                 height: 10px;
                 width: 10px;
-                subcontrol-position: left;
+                subcontrol-position: top;
                 subcontrol-origin: margin;
             }
 
-            QScrollBar::add-line:horizontal:hover,QScrollBar::add-line:horizontal:on
+            QScrollBar::add-line:horizontal
             {
-                border-image: url(:/qss_icons/rc/right_arrow.png);
+                margin: 3px 0px 3px 0px;
+                border-image: url(:/qss_icons/rc/down_arrow_disabled.png);
                 height: 10px;
                 width: 10px;
-                subcontrol-position: right;
+                subcontrol-position: bottom;
                 subcontrol-origin: margin;
             }
-
 
             QScrollBar::sub-line:horizontal:hover, QScrollBar::sub-line:horizontal:on
             {
-                border-image: url(:/qss_icons/rc/left_arrow.png);
+                border-image: url(:/qss_icons/rc/up_arrow.png);
                 height: 10px;
                 width: 10px;
-                subcontrol-position: left;
+                subcontrol-position: top;
+                subcontrol-origin: margin;
+            }
+
+            QScrollBar::add-line:horizontal:hover, QScrollBar::add-line:horizontal:on
+            {
+                border-image: url(:/qss_icons/rc/down_arrow.png);
+                height: 10px;
+                width: 10px;
+                subcontrol-position: bottom;
                 subcontrol-origin: margin;
             }
 
@@ -1142,24 +1168,27 @@ class MainWindow(QMainWindow):
                 background: none;
             }
 
-
             QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
             {
                 background: none;
             }
-
+        """)
+        # Only able to style the vertical scrollbar... !!!
+        top_songs_scrollbar.setStyleSheet(
+            """
+            /* --------------------------------------- QScrollBar  -----------------------------------*/
             QScrollBar:vertical
             {
-                background-color: #2A2929;
+                background-color: grey;
                 width: 15px;
                 margin: 15px 3px 15px 3px;
-                border: 1px transparent #2A2929;
+                border: 1px transparent;
                 border-radius: 4px;
             }
 
             QScrollBar::handle:vertical
             {
-                background-color: red;         /* #605F5F; */
+                background-color: white;         /* #605F5F; */
                 min-height: 5px;
                 border-radius: 4px;
             }
@@ -1184,7 +1213,7 @@ class MainWindow(QMainWindow):
                 subcontrol-origin: margin;
             }
 
-            QScrollBar::sub-line:vertical:hover,QScrollBar::sub-line:vertical:on
+            QScrollBar::sub-line:vertical:hover, QScrollBar::sub-line:vertical:on
             {
                 border-image: url(:/qss_icons/rc/up_arrow.png);
                 height: 10px;
@@ -1210,8 +1239,71 @@ class MainWindow(QMainWindow):
             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
             {
                 background: none;
-            }
-        """)
+            }""")
+
+        # QScrollBar:horizontal
+        #     {
+        #         height: 15px;
+        #         margin: 3px 15px 3px 15px;
+        #         border: 1px transparent #2A2929;
+        #         border-radius: 4px;
+        #         background-color: #000000;    /* #2A2929; */
+        #     }
+
+        #     QScrollBar::handle:horizontal
+        #     {
+        #         background-color: #000000;      /* #605F5F; */
+        #         min-width: 5px;
+        #         border-radius: 4px;
+        #     }
+
+        #     QScrollBar::add-line:horizontal
+        #     {
+        #         margin: 0px 3px 0px 3px;
+        #         border-image: url(:/qss_icons/rc/right_arrow_disabled.png);
+        #         width: 10px;
+        #         height: 10px;
+        #         subcontrol-position: right;
+        #         subcontrol-origin: margin;
+        #     }
+
+        #     QScrollBar::sub-line:horizontal
+        #     {
+        #         margin: 0px 3px 0px 3px;
+        #         border-image: url(:/qss_icons/rc/left_arrow_disabled.png);
+        #         height: 10px;
+        #         width: 10px;
+        #         subcontrol-position: left;
+        #         subcontrol-origin: margin;
+        #     }
+
+        #     QScrollBar::add-line:horizontal:hover,QScrollBar::add-line:horizontal:on
+        #     {
+        #         border-image: url(:/qss_icons/rc/right_arrow.png);
+        #         height: 10px;
+        #         width: 10px;
+        #         subcontrol-position: right;
+        #         subcontrol-origin: margin;
+        #     }
+
+        #     QScrollBar::sub-line:horizontal:hover, QScrollBar::sub-line:horizontal:on
+        #     {
+        #         border-image: url(:/qss_icons/rc/left_arrow.png);
+        #         height: 10px;
+        #         width: 10px;
+        #         subcontrol-position: left;
+        #         subcontrol-origin: margin;
+        #     }
+
+        #     QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal
+        #     {
+        #         background: none;
+        #     }
+
+        #     QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
+        #     {
+        #         background: none;
+        #     }
 
         # TODO: horizontal Scrollbar does not appear/ show up
         # top_songs_scrollbar.setStyleSheet(
